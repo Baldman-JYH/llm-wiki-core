@@ -99,6 +99,9 @@ def test_save_insight_creates_question_page_and_updates_wiki(tmp_path) -> None:
     assert "wiki/index.md" in result.files_updated
     assert "wiki/log.md" in result.files_updated
     assert "wiki/hot.md" in result.files_updated
+    hot = (tmp_path / "wiki" / "hot.md").read_text(encoding="utf-8")
+    assert "created: " in hot
+    assert "status: active" in hot
 
 
 def test_save_insight_can_create_concept_page(tmp_path) -> None:

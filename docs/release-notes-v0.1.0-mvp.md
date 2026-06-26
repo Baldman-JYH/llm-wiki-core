@@ -8,6 +8,12 @@ Date: 2026-06-26
 
 This release is ready for local Codex App and Codex CLI practice use. It implements the neutral LLM Wiki core needed to maintain durable Markdown Wiki artifacts from raw sources, following Karpathy's LLM Wiki pattern and treating `claude-obsidian` as the reference implementation.
 
+## Post-MVP R1 Hardening
+
+R1 hardening is tracked after the MVP release and does not move the `v0.1.0-mvp` tag.
+
+The R1 pass adds optional CLI `--json` output, structured JSON error objects, stricter frontmatter lint findings, clearer `.raw/` ingest path errors, and additional documentation coverage.
+
 ## Included
 
 - Neutral Python package and CLI.

@@ -30,12 +30,9 @@ def ingest_source(
     root = Path(vault_root)
     active_transport = transport or select_runtime_transport(root).transport
     raw_relative = _normalize_source_path(source_path)
-    raw_path = raw_relative.as_posix()
-
-    if not raw_path.startswith(".raw/"):
-        raise ValueError("source_path must be under .raw/")
+    raw_path = _validate_raw_source_path(raw_relative)
     if not active_transport.exists(raw_path):  # type: ignore[attr-defined]
-        raise FileNotFoundError(f"Raw source not found: {raw_path}")
+        raise FileNotFoundError(f"Raw source not found under .raw/: {raw_path}")
 
     source_text = active_transport.read_text(raw_path)  # type: ignore[attr-defined]
     fingerprint = _fingerprint(source_text)
@@ -103,6 +100,16 @@ def _normalize_source_path(source_path: str | Path) -> Path:
             return Path(*parts[raw_index:])
         return raw
     return raw
+
+
+def _validate_raw_source_path(raw_relative: Path) -> str:
+    raw_path = raw_relative.as_posix()
+    parts = raw_relative.parts
+    if not parts or parts[0] != ".raw" or len(parts) == 1:
+        raise ValueError(f"source_path must be under .raw/: {raw_path}")
+    if ".." in parts:
+        raise ValueError(f"source_path under .raw/ must not contain '..': {raw_path}")
+    return raw_path
 
 
 def _load_manifest(transport: object) -> dict[str, object]:
@@ -195,7 +202,9 @@ def _write_hot(transport: object, title: str, source_page: str, date: str, times
         "---\n"
         "type: meta\n"
         'title: "Hot Cache"\n'
+        f"created: {date}\n"
         f"updated: {timestamp}\n"
+        "status: active\n"
         "---\n\n"
         "# Recent Context\n\n"
         "## Last Updated\n"

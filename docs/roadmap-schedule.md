@@ -20,7 +20,9 @@ Scope:
 
 ## R1: Hardening
 
-Window: 2026-06-27 to 2026-07-03
+Window: 2026-06-26
+
+Status: complete.
 
 Scope:
 
@@ -29,6 +31,14 @@ Scope:
 - Stricter frontmatter validation.
 - Better invalid `.raw/` path errors.
 - Optional machine-readable CLI output.
+
+Completed outcome:
+
+- Added optional `--json` output for all CLI commands.
+- Added structured JSON error output.
+- Added stricter missing-field and malformed-frontmatter lint coverage.
+- Added clearer `.raw/` ingest path validation and error messages.
+- Added R1 documentation coverage.
 
 Exit criteria:
 

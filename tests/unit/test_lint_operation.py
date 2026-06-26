@@ -46,6 +46,59 @@ def test_lint_reports_missing_frontmatter_dead_link_and_orphan(tmp_path) -> None
     assert "orphan-page" in checks
 
 
+def test_lint_reports_missing_required_frontmatter_fields(tmp_path) -> None:
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.lint import lint_wiki
+
+    init_vault(tmp_path, purpose="Missing frontmatter fields")
+    page = tmp_path / "wiki" / "concepts" / "Incomplete Frontmatter.md"
+    page.write_text(
+        "---\n"
+        "type: concept\n"
+        'title: "Incomplete Frontmatter"\n'
+        "---\n"
+        "\n"
+        "# Incomplete Frontmatter\n",
+        encoding="utf-8",
+    )
+
+    result = lint_wiki(tmp_path, write_report=False)
+
+    missing = {
+        finding.message
+        for finding in result.findings
+        if finding.check == "frontmatter-field" and finding.path == "wiki/concepts/Incomplete Frontmatter.md"
+    }
+    assert "Frontmatter missing required field: created." in missing
+    assert "Frontmatter missing required field: updated." in missing
+    assert "Frontmatter missing required field: status." in missing
+
+
+def test_lint_reports_malformed_frontmatter_delimiter(tmp_path) -> None:
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.lint import lint_wiki
+
+    init_vault(tmp_path, purpose="Malformed frontmatter")
+    page = tmp_path / "wiki" / "concepts" / "Malformed Frontmatter.md"
+    page.write_text(
+        "---\n"
+        "type: concept\n"
+        'title: "Malformed Frontmatter"\n'
+        "\n"
+        "# Malformed Frontmatter\n",
+        encoding="utf-8",
+    )
+
+    result = lint_wiki(tmp_path, write_report=False)
+
+    assert any(
+        finding.check == "frontmatter"
+        and finding.path == "wiki/concepts/Malformed Frontmatter.md"
+        and "closing delimiter" in finding.message
+        for finding in result.findings
+    )
+
+
 def test_lint_wiki_uses_transport_for_reads_and_report_writes(tmp_path) -> None:
     from llm_wiki_core.operations.lint import lint_wiki
 

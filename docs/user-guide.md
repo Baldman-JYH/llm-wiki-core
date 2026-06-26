@@ -18,7 +18,7 @@ The canonical abstract idea is Karpathy's LLM Wiki pattern: humans choose source
 From the project root:
 
 ```powershell
-cd D:\ai\llmWiki\llm-wiki-core
+cd <repo>
 python -m pip install -e .
 llm-wiki --version
 ```
@@ -27,20 +27,20 @@ If the console script is not visible in the current shell, use the Python module
 
 ```powershell
 python -m llm_wiki_core --version
-python -m llm_wiki_core init D:\path\to\vault --purpose "Research local LLM wiki workflows"
+python -m llm_wiki_core init <vault> --purpose "Research local LLM wiki workflows"
 ```
 
 For a Codex-oriented install flow:
 
 ```powershell
-cd D:\ai\llmWiki\llm-wiki-core\integrations\codex\install
-.\install.ps1 -VaultPath D:\path\to\vault -Purpose "Research local LLM wiki workflows"
+cd <repo>\integrations\codex\install
+.\install.ps1 -VaultPath <vault> -Purpose "Research local LLM wiki workflows"
 ```
 
 Dry run:
 
 ```powershell
-.\install.ps1 -VaultPath D:\path\to\vault -Purpose "Research local LLM wiki workflows" -DryRun
+.\install.ps1 -VaultPath <vault> -Purpose "Research local LLM wiki workflows" -DryRun
 ```
 
 macOS and Linux shell users can use:
@@ -54,8 +54,8 @@ cd /path/to/llm-wiki-core/integrations/codex/install
 ## Create A Vault
 
 ```powershell
-llm-wiki init D:\path\to\vault --purpose "Research local LLM wiki workflows"
-llm-wiki detect-transport D:\path\to\vault --force
+llm-wiki init <vault> --purpose "Research local LLM wiki workflows"
+llm-wiki detect-transport <vault> --force
 ```
 
 Expected core artifacts:
@@ -81,14 +81,14 @@ The current implemented runtime transport is `filesystem`. A transport snapshot 
 Put source material under `.raw/`. The raw source is treated as preserved input. Example:
 
 ```powershell
-New-Item -ItemType Directory -Force D:\path\to\vault\.raw\articles
-Set-Content -LiteralPath D:\path\to\vault\.raw\articles\example.md -Encoding UTF8 -Value "# Example Source`n`nDurable knowledge should be organized into Markdown Wiki artifacts."
+New-Item -ItemType Directory -Force <vault>\.raw\articles
+Set-Content -LiteralPath <vault>\.raw\articles\example.md -Encoding UTF8 -Value "# Example Source`n`nDurable knowledge should be organized into Markdown Wiki artifacts."
 ```
 
 Ingest it:
 
 ```powershell
-llm-wiki ingest D:\path\to\vault .raw\articles\example.md
+llm-wiki ingest <vault> .raw\articles\example.md
 ```
 
 Expected result:
@@ -103,8 +103,8 @@ Expected result:
 Use these commands when opening the vault again in Codex App or Codex CLI:
 
 ```powershell
-llm-wiki status D:\path\to\vault
-llm-wiki continue D:\path\to\vault
+llm-wiki status <vault>
+llm-wiki continue <vault>
 ```
 
 `status` summarizes initialization, source count, runtime transport, missing required paths, and lint report hints. `continue` reads `wiki/hot.md`, `wiki/index.md`, and `wiki/log.md` so the agent can recover recent Wiki context without relying on chat history.
@@ -114,21 +114,33 @@ llm-wiki continue D:\path\to\vault
 Ask questions against the current Wiki:
 
 ```powershell
-llm-wiki query D:\path\to\vault "What does the wiki know about durable LLM knowledge?"
+llm-wiki query <vault> "What does the wiki know about durable LLM knowledge?"
 ```
 
 Save a durable insight:
 
 ```powershell
-llm-wiki save D:\path\to\vault --title "Durable LLM Knowledge" --content "The durable artifact is the Markdown Wiki, not the chat transcript."
+llm-wiki save <vault> --title "Durable LLM Knowledge" --content "The durable artifact is the Markdown Wiki, not the chat transcript."
 ```
 
 Saved insights create pages under `wiki/questions/` by default and update `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
 
+## Machine-Readable CLI Output
+
+Every command supports optional `--json` output. Use this mode when Codex App, Codex CLI, CI, or a local automation script needs a stable result object instead of human-oriented text.
+
+```powershell
+llm-wiki status <vault> --json
+llm-wiki ingest <vault> .raw/articles/example.md --json
+llm-wiki lint <vault> --json
+```
+
+Successful results include `operation` and `status`. Failed results return one JSON object with `"status": "error"` and details under `error.type` and `error.message`.
+
 ## Lint
 
 ```powershell
-llm-wiki lint D:\path\to\vault
+llm-wiki lint <vault>
 ```
 
 Lint checks required paths, manifest JSON, frontmatter, dead wikilinks, orphan pages, and writes a stable report under `wiki/meta/`.
@@ -168,7 +180,7 @@ The adapter assets are repo-local. The MVP does not automatically install global
 
 ## Troubleshooting
 
-- If `llm-wiki` is not found, rerun `python -m pip install -e .` from `D:\ai\llmWiki\llm-wiki-core`.
+- If `llm-wiki` is not found, rerun `python -m pip install -e .` from the project root.
 - If the shell still cannot find `llm-wiki`, use `python -m llm_wiki_core ...` as the equivalent local fallback.
 - If transport detection records Obsidian CLI, remember that the current runtime still uses `filesystem`.
 - If lint reports high-severity dead links, inspect the generated `wiki/meta/lint-report-YYYY-MM-DD.md`.

@@ -10,6 +10,7 @@ from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
 SEVERITIES = ("blocker", "high", "medium", "low")
+REQUIRED_FRONTMATTER_FIELDS = ("type", "title", "created", "updated", "status")
 
 
 @dataclass(frozen=True)
@@ -96,8 +97,23 @@ def _check_manifest(transport: object, findings: list[LintFinding]) -> None:
 def _check_frontmatter(transport: object, pages: list[str], findings: list[LintFinding]) -> None:
     for page in pages:
         text = transport.read_text(page)  # type: ignore[attr-defined]
-        if not text.startswith("---\n"):
+        frontmatter = _parse_frontmatter(text)
+        if frontmatter is None:
             findings.append(LintFinding("high", "frontmatter", page, "Markdown page is missing YAML frontmatter."))
+            continue
+        if frontmatter == "malformed":
+            findings.append(LintFinding("high", "frontmatter", page, "Markdown page frontmatter is missing a closing delimiter."))
+            continue
+        for field_name in REQUIRED_FRONTMATTER_FIELDS:
+            if not frontmatter.get(field_name):
+                findings.append(
+                    LintFinding(
+                        "high",
+                        "frontmatter-field",
+                        page,
+                        f"Frontmatter missing required field: {field_name}.",
+                    )
+                )
 
 
 def _check_wikilinks(transport: object, pages: list[str], findings: list[LintFinding]) -> None:
@@ -151,22 +167,34 @@ def _page_link_targets(transport: object, pages: list[str]) -> dict[str, set[str
 
 
 def _frontmatter_title(text: str) -> str | None:
+    frontmatter = _parse_frontmatter(text)
+    if not isinstance(frontmatter, dict):
+        return None
+
+    title = frontmatter.get("title", "").strip()
+    if len(title) >= 2 and title[0] == title[-1] and title[0] in {"'", '"'}:
+        title = title[1:-1].strip()
+    return title or None
+
+
+def _parse_frontmatter(text: str) -> dict[str, str] | str | None:
     if not text.startswith("---\n"):
         return None
 
     end = text.find("\n---", 4)
     if end == -1:
-        return None
+        return "malformed"
 
-    frontmatter = text[4:end]
-    match = re.search(r"(?m)^title:\s*(.+?)\s*$", frontmatter)
-    if not match:
-        return None
-
-    title = match.group(1).strip()
-    if len(title) >= 2 and title[0] == title[-1] and title[0] in {"'", '"'}:
-        title = title[1:-1].strip()
-    return title or None
+    fields: dict[str, str] = {}
+    for line in text[4:end].splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        key = key.strip()
+        if not key:
+            continue
+        fields[key] = value.strip()
+    return fields
 
 
 def _write_report(transport: object, findings: list[LintFinding], counts: dict[str, int]) -> str:

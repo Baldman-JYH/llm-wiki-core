@@ -122,7 +122,9 @@ def _write_hot(transport: object, title: str, page_path: str, date: str, timesta
         "---\n"
         "type: meta\n"
         'title: "Hot Cache"\n'
+        f"created: {date}\n"
         f"updated: {timestamp}\n"
+        "status: active\n"
         "---\n\n"
         "# Recent Context\n\n"
         "## Last Updated\n"

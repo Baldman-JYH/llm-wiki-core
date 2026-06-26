@@ -23,6 +23,9 @@ def test_ingest_source_creates_source_page_and_updates_indexes(tmp_path) -> None
     assert "wiki/index.md" in result.files_updated
     assert "wiki/log.md" in result.files_updated
     assert "wiki/hot.md" in result.files_updated
+    hot = (tmp_path / "wiki" / "hot.md").read_text(encoding="utf-8")
+    assert "created: " in hot
+    assert "status: active" in hot
 
 
 def test_ingest_source_writes_manifest_record(tmp_path) -> None:
@@ -100,6 +103,50 @@ def test_ingest_source_rejects_paths_outside_raw(tmp_path) -> None:
         assert "must be under .raw/" in str(error)
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_ingest_source_rejects_raw_path_traversal(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest import ingest_source
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="Test raw traversal")
+
+    try:
+        ingest_source(tmp_path, ".raw/../outside.md")
+    except ValueError as error:
+        message = str(error)
+        assert "must not contain '..'" in message
+        assert ".raw/" in message
+    else:
+        raise AssertionError("Expected ValueError")
+
+
+def test_ingest_source_reports_missing_raw_file(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest import ingest_source
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="Test missing raw")
+
+    try:
+        ingest_source(tmp_path, ".raw/articles/missing.md")
+    except FileNotFoundError as error:
+        assert "Raw source not found under .raw/: .raw/articles/missing.md" in str(error)
+    else:
+        raise AssertionError("Expected FileNotFoundError")
+
+
+def test_cli_ingest_invalid_source_returns_error_exit_code(tmp_path, capsys) -> None:
+    from llm_wiki_core.cli import main
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="CLI ingest error")
+
+    exit_code = main(["ingest", str(tmp_path), "notes/source.md"])
+
+    assert exit_code == 1
+    captured = capsys.readouterr()
+    assert "ingest error" in captured.err
+    assert ".raw/" in captured.err
 
 
 def test_ingest_source_uses_transport_for_read_and_write_paths(tmp_path) -> None:
