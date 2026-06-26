@@ -1,0 +1,103 @@
+from __future__ import annotations
+
+from pathlib import Path
+import os
+import shutil
+import subprocess
+
+import pytest
+
+
+def _repo_root() -> Path:
+    return Path(__file__).parents[2]
+
+
+def test_powershell_installer_has_dry_run_plan_and_reentry_hints() -> None:
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.ps1"
+    text = script.read_text(encoding="utf-8")
+
+    assert "DryRun" in text
+    assert "pip install -e" in text
+    assert "llm-wiki init" in text
+    assert "llm-wiki detect-transport" in text
+    assert "llm-wiki status" in text
+    assert "llm-wiki continue" in text
+
+
+def test_shell_installer_has_dry_run_plan_and_reentry_hints() -> None:
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.sh"
+    text = script.read_text(encoding="utf-8")
+
+    assert "--dry-run" in text
+    assert "pip install -e" in text
+    assert "llm-wiki init" in text
+    assert "llm-wiki detect-transport" in text
+    assert "llm-wiki status" in text
+    assert "llm-wiki continue" in text
+
+
+def test_powershell_installer_dry_run_does_not_create_vault(tmp_path) -> None:
+    shell = shutil.which("pwsh") or shutil.which("powershell")
+    if shell is None:
+        pytest.skip("PowerShell executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.ps1"
+    vault = tmp_path / "dry run vault"
+
+    result = subprocess.run(
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-VaultPath",
+            str(vault),
+            "-Purpose",
+            "Installer dry run",
+            "-DryRun",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "DRY RUN" in output
+    assert "pip install -e" in output
+    assert "llm-wiki init" in output
+    assert "llm-wiki detect-transport" in output
+    assert "llm-wiki status" in output
+    assert "llm-wiki continue" in output
+    assert not vault.exists()
+
+
+def test_shell_installer_dry_run_does_not_create_vault(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell dry-run execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.sh"
+    vault = tmp_path / "dry run vault"
+
+    result = subprocess.run(
+        [shell, str(script), "--dry-run", str(vault), "Installer dry run"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "DRY RUN" in output
+    assert "pip install -e" in output
+    assert "llm-wiki init" in output
+    assert "llm-wiki detect-transport" in output
+    assert "llm-wiki status" in output
+    assert "llm-wiki continue" in output
+    assert not vault.exists()

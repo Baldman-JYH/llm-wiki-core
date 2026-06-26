@@ -1,0 +1,21 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Packaging / build artifacts
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local editor / OS noise
+.DS_Store
+Thumbs.db
+
+# Local release outputs are generated outside the repository by default.
+release_artifacts/
