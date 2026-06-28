@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from llm_wiki_core.operations.ingest import IngestResult, _normalize_source_path, ingest_source
+from llm_wiki_core.operations.ingest import IngestResult, _normalize_source_path, _title_from_source_path, ingest_source
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
@@ -42,11 +42,10 @@ def ingest_batch(
     active_transport = transport or select_runtime_transport(root).transport
     raw_root = _validate_raw_source_root(_normalize_source_path(source_root))
 
-    if not active_transport.exists(raw_root):  # type: ignore[attr-defined]
-        raise FileNotFoundError(f"Raw source root not found under .raw/: {raw_root}")
-
     source_paths = _discover_markdown(active_transport, raw_root)
     if not source_paths:
+        if _root_is_missing(active_transport, raw_root):
+            raise FileNotFoundError(f"Raw source root not found under .raw/: {raw_root}")
         return BatchIngestResult(
             operation="ingest-batch",
             status="empty",
@@ -59,7 +58,24 @@ def ingest_batch(
         )
 
     items: list[BatchIngestItem] = []
+    claimed_targets: dict[str, str] = {}
     for source_path in source_paths:
+        target_page = _target_source_page(source_path)
+        conflicting_source = claimed_targets.get(target_page)
+        if conflicting_source is not None:
+            items.append(
+                BatchIngestItem(
+                    source_path=source_path,
+                    status="failed",
+                    error_type="ValueError",
+                    error_message=(
+                        f"Source page conflict: {source_path} and {conflicting_source} both map to {target_page}"
+                    ),
+                )
+            )
+            continue
+
+        claimed_targets[target_page] = source_path
         try:
             result = ingest_source(root, source_path, force=force, transport=active_transport)
         except Exception as error:  # noqa: BLE001 - batch mode must record per-source failures.
@@ -104,8 +120,27 @@ def _validate_raw_source_root(raw_relative: Path) -> str:
 
 def _discover_markdown(transport: object, raw_root: str) -> list[str]:
     if raw_root.lower().endswith(".md"):
+        if not transport.exists(raw_root):  # type: ignore[attr-defined]
+            raise FileNotFoundError(f"Raw source root not found under .raw/: {raw_root}")
         return [raw_root]
     return sorted(transport.list_markdown(raw_root))  # type: ignore[attr-defined]
+
+
+def _root_is_missing(transport: object, raw_root: str) -> bool:
+    try:
+        return not transport.exists(raw_root)  # type: ignore[attr-defined]
+    except Exception as error:  # noqa: BLE001 - transport-specific directory probes may not be supported.
+        return _is_missing_error(error)
+
+
+def _is_missing_error(error: Exception) -> bool:
+    message = str(error).casefold()
+    return "not found" in message or "no such" in message or "missing" in message
+
+
+def _target_source_page(source_path: str) -> str:
+    title = _title_from_source_path(_normalize_source_path(source_path))
+    return (Path("wiki") / "sources" / f"{title}.md").as_posix()
 
 
 def _item_from_ingest_result(result: IngestResult) -> BatchIngestItem:

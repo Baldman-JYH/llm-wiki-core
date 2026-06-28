@@ -135,6 +135,61 @@ def test_ingest_batch_accepts_single_markdown_file_root(tmp_path) -> None:
     assert (tmp_path / "wiki" / "sources" / "Single.md").is_file()
 
 
+def test_ingest_batch_duplicate_basename_does_not_silently_overwrite(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest_batch import ingest_batch
+
+    _init_batch_vault(tmp_path)
+    _write_raw(tmp_path, "a/report.md", "# First Report\n\nAlpha source.")
+    _write_raw(tmp_path, "b/report.md", "# Second Report\n\nBeta source.")
+
+    result = ingest_batch(tmp_path, ".raw")
+
+    assert result.status == "partial"
+    assert result.total == 2
+    assert result.succeeded == 1
+    assert result.failed == 1
+    assert [item.source_path for item in result.items] == [
+        ".raw/a/report.md",
+        ".raw/b/report.md",
+    ]
+    assert [item.status for item in result.items] == ["success", "failed"]
+    assert result.items[1].error_type == "ValueError"
+    assert "wiki/sources/Report.md" in (result.items[1].error_message or "")
+
+    source_page = tmp_path / "wiki" / "sources" / "Report.md"
+    source_page_text = source_page.read_text(encoding="utf-8")
+    assert 'source_path: ".raw/a/report.md"' in source_page_text
+    assert ".raw/b/report.md" not in source_page_text
+
+    manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+    assert sorted(manifest["sources"]) == ["a/report.md"]
+    assert manifest["sources"]["a/report.md"]["generated_pages"] == ["wiki/sources/Report.md"]
+
+
+def test_ingest_batch_directory_root_discovers_before_exists_probe(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest_batch import ingest_batch
+
+    class DirectoryDiscoveryTransport:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, str]] = []
+
+        def exists(self, relative_path: str) -> bool:
+            self.calls.append(("exists", relative_path))
+            if relative_path == ".raw/articles":
+                raise RuntimeError("directory exists probe unsupported")
+            return False
+
+        def list_markdown(self, root: str) -> list[str]:
+            self.calls.append(("list_markdown", root))
+            assert self.calls == [("list_markdown", ".raw/articles")]
+            return []
+
+    result = ingest_batch(tmp_path, ".raw/articles", transport=DirectoryDiscoveryTransport())
+
+    assert result.status == "empty"
+    assert result.root_path == ".raw/articles"
+
+
 def test_ingest_batch_captures_per_file_failure_and_continues(tmp_path) -> None:
     from llm_wiki_core.operations.ingest_batch import ingest_batch
 
