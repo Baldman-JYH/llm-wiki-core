@@ -1,13 +1,24 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+PUBLIC_DOCS = (
+    "README.md",
+    "docs/user-guide.md",
+    "docs/transport-contract.md",
+    "docs/r2-obsidian-cli-transport-report.md",
+)
 
 
 def _read(relative: str) -> str:
     return (ROOT / relative).read_text(encoding="utf-8")
+
+
+def _public_docs_corpus() -> str:
+    return "\n".join(_read(relative) for relative in PUBLIC_DOCS)
 
 
 def test_transport_contract_documents_official_and_legacy_obsidian_cli() -> None:
@@ -35,3 +46,21 @@ def test_user_guide_documents_obsidian_cli_setup_without_requiring_it() -> None:
     assert "Obsidian CLI" in guide
     assert "filesystem fallback" in guide
     assert "not required" in guide
+
+
+def test_public_docs_avoid_local_absolute_paths() -> None:
+    corpus = _public_docs_corpus()
+
+    assert re.search(r"\b[A-Za-z]:[\\/]", corpus) is None
+
+
+def test_public_docs_keep_karpathy_claude_and_neutral_core_framing() -> None:
+    corpus = _public_docs_corpus()
+    lower = corpus.lower()
+
+    assert "karpathy" in lower
+    assert "gist" in lower
+    assert "claude-obsidian" in lower
+    assert ("reference implementation" in lower) or ("参考实现" in corpus)
+    assert "llm-wiki-core" in lower
+    assert ("neutral" in lower) or ("中性核心" in corpus) or ("中性" in corpus)
