@@ -8,6 +8,12 @@ from llm_wiki_core.transport.obsidian_cli import (
     ObsidianCliTransport,
     ObsidianCliTransportNotImplementedError,
 )
+from llm_wiki_core.transport.obsidian_cli_runner import (
+    ObsidianCliProfile,
+    ObsidianCliRunner,
+    ObsidianCliRunResult,
+    SubprocessObsidianCliRunner,
+)
 from llm_wiki_core.transport.runtime import (
     RuntimeTransportSelection,
     select_runtime_transport,
@@ -17,6 +23,10 @@ __all__ = [
     "FilesystemTransport",
     "ObsidianCliTransport",
     "ObsidianCliTransportNotImplementedError",
+    "ObsidianCliProfile",
+    "ObsidianCliRunner",
+    "ObsidianCliRunResult",
+    "SubprocessObsidianCliRunner",
     "PathOutsideVaultError",
     "RuntimeTransportSelection",
     "SearchResult",
