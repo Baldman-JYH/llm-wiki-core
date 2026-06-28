@@ -79,6 +79,26 @@ def test_cli_status_prints_summary(tmp_path, capsys) -> None:
     assert "sources: 0" in output
 
 
+def test_cli_status_prints_transport_warnings(tmp_path, capsys) -> None:
+    from llm_wiki_core.cli import main
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="CLI status warnings")
+    snapshot = tmp_path / ".vault-meta" / "transport.json"
+    snapshot.parent.mkdir(parents=True)
+    snapshot.write_text(
+        '{"preferred": "obsidian-cli", "available": {"obsidian-cli": {"available": true, "implemented": false}, "filesystem": {"available": true, "implemented": true}}}\n',
+        encoding="utf-8",
+    )
+
+    exit_code = main(["status", str(tmp_path)])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "warnings:" in output
+    assert "obsidian-cli" in output
+
+
 def test_continue_wiki_reads_hot_index_and_recent_log_without_writing(tmp_path) -> None:
     from llm_wiki_core.operations.continue_ import continue_wiki
     from llm_wiki_core.operations.ingest import ingest_source
@@ -130,3 +150,23 @@ def test_cli_continue_prints_context_summary(tmp_path, capsys) -> None:
     assert "continue success" in output
     assert "files read: 3" in output
     assert "recent log:" in output
+
+
+def test_cli_continue_prints_transport_warnings(tmp_path, capsys) -> None:
+    from llm_wiki_core.cli import main
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="CLI continue warnings")
+    snapshot = tmp_path / ".vault-meta" / "transport.json"
+    snapshot.parent.mkdir(parents=True)
+    snapshot.write_text(
+        '{"preferred": "obsidian-cli", "available": {"obsidian-cli": {"available": true, "implemented": false}, "filesystem": {"available": true, "implemented": true}}}\n',
+        encoding="utf-8",
+    )
+
+    exit_code = main(["continue", str(tmp_path)])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "warnings:" in output
+    assert "obsidian-cli" in output

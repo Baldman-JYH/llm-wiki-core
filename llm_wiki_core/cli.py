@@ -143,6 +143,7 @@ def _print_text_result(command: str, result: object) -> None:
         print(f"{result.operation} {result.status}")
         print(f"preferred: {result.snapshot.preferred}")
         print(f"snapshot: {result.snapshot_path}")
+        _print_warnings(result)
         print(f"next: {result.next_suggested_action}")
 
     if command == "ingest":
@@ -186,6 +187,7 @@ def _print_text_result(command: str, result: object) -> None:
             print("missing:")
             for path in result.missing_required_paths:
                 print(f"- {path}")
+        _print_warnings(result)
         print(f"next: {result.next_suggested_action}")
 
     if command == "continue":
@@ -195,7 +197,16 @@ def _print_text_result(command: str, result: object) -> None:
             print("recent log:")
             for entry in result.recent_log_entries:
                 print(f"- {entry}")
+        _print_warnings(result)
         print(f"next: {result.next_suggested_action}")
+
+
+def _print_warnings(result: object) -> None:
+    warnings = getattr(result, "warnings", [])
+    if warnings:
+        print("warnings:")
+        for warning in warnings:
+            print(f"- {warning}")
 
 
 def _print_error(args: argparse.Namespace, error: Exception) -> int:
