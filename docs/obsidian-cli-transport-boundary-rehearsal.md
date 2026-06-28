@@ -39,4 +39,4 @@ SNAPSHOT filesystem_implemented=True
 
 This historical rehearsal predates the R2 `ObsidianCliTransport` implementation. R2 replaced the placeholder with a fake-runner-tested transport that is selected only after capability verification.
 
-This keeps the LLM Wiki artifact path honest: current core operations use filesystem transport, while Obsidian CLI remains a future desktop integration boundary.
+This keeps the LLM Wiki artifact path honest: as MVP/R1 evidence it records the original filesystem boundary, while current R2 behavior lives in the transport report where official `obsidian` is an optional verified-only path and filesystem remains the fallback.

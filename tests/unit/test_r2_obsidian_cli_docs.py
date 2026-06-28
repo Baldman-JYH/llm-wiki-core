@@ -96,3 +96,12 @@ def test_public_docs_describe_obsidian_cli_as_optional_verified_runtime() -> Non
     assert "read/write/append/list/search" in corpus
     assert "capability probe" in corpus
     assert "legacy `obsidian-cli`" in corpus
+
+
+def test_boundary_rehearsal_is_explicitly_historical_and_points_to_r2_behavior() -> None:
+    rehearsal = _read("docs/obsidian-cli-transport-boundary-rehearsal.md")
+
+    assert "Historical note: this rehearsal documents the MVP/R1 boundary before R2." in rehearsal
+    assert "official `obsidian` CLI is optional and verified-only" in rehearsal
+    assert "filesystem remains the fallback" in rehearsal
+    assert "future desktop integration boundary" not in rehearsal

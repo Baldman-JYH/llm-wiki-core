@@ -22,7 +22,9 @@ def test_completion_criteria_and_roadmap_define_mvp_boundary() -> None:
         "Codex App",
         "Codex CLI",
         "filesystem",
-        "Obsidian CLI actual read/write/search is not implemented",
+        "optional official `obsidian` CLI runtime path",
+        "selected only after vault binding and read/write/append/list/search capability probes pass",
+        "filesystem fallback remains active",
         "Full claude-obsidian parity is not the MVP completion criterion",
     ]
     for term in completion_terms:
@@ -30,7 +32,9 @@ def test_completion_criteria_and_roadmap_define_mvp_boundary() -> None:
 
     roadmap_terms = [
         "MVP local use",
-        "Obsidian CLI actual read/write/search",
+        "Obsidian CLI integration hardening after R2 verified-only runtime selection",
+        "portable baseline remains filesystem",
+        "official `obsidian` CLI is optional",
         "URL ingest",
         "batch ingest",
         "deep retrieval",
