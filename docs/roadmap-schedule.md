@@ -85,6 +85,33 @@ Exit criteria:
 
 - Each new ingest or retrieval mode proves raw source preservation, citation traceability, and lint health.
 
+### R3.1: Batch Ingest
+
+Window: 2026-06-28
+
+Status: complete.
+
+Scope:
+
+- Batch ingest local `.md` files under `.raw/`.
+- Reuse the existing single-source ingest path.
+- Preserve raw source files, manifest traceability, index/log/hot updates, and lint health.
+- Report per-source success, skipped, and failed items.
+
+Non-scope:
+
+- URL ingest.
+- HTML cleanup.
+- Image ingest.
+- Deep retrieval.
+- BM25, vector search, hybrid retrieval, or reranking.
+- LLM synthesis.
+
+Follow-up:
+
+- URL ingest and retrieval expansion remain future R3 work.
+- Full `claude-obsidian` parity is not claimed in R3.1.
+
 ## R4: Adapter Expansion
 
 Window: 2026-08-08 to 2026-08-21

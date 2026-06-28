@@ -108,6 +108,25 @@ Expected result:
 - `wiki/sources/Example.md` or an equivalent title-derived source page is created;
 - `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md` are updated.
 
+## Batch Ingest Raw Sources
+
+R3.1 supports local Markdown batch ingest for `.md` files that already live under `.raw/`.
+
+```powershell
+llm-wiki ingest-batch <vault> .raw/articles
+llm-wiki ingest-batch <vault> .raw/articles --force
+llm-wiki ingest-batch <vault> .raw/articles --json
+```
+
+Expected result:
+
+- each discovered `.md` source is processed through the same ingest path as `llm-wiki ingest`;
+- unchanged sources are counted as skipped unless `--force` is used;
+- per-source failures are reported without blocking unrelated sources;
+- raw files remain unchanged.
+
+URL ingest, HTML cleanup, image ingest, deep retrieval, vector search, and LLM synthesis remain outside R3.1.
+
 ## Re-Enter Context
 
 Use these commands when opening the vault again in Codex App or Codex CLI:
@@ -142,6 +161,7 @@ Every command supports optional `--json` output. Use this mode when Codex App, C
 ```powershell
 llm-wiki status <vault> --json
 llm-wiki ingest <vault> .raw/articles/example.md --json
+llm-wiki ingest-batch <vault> .raw/articles --json
 llm-wiki lint <vault> --json
 ```
 
@@ -178,6 +198,7 @@ The adapter assets are repo-local. The MVP does not automatically install global
 - Codex App / Codex CLI command discovery through generated `AGENTS.md`.
 - Filesystem transport read/write/search.
 - `init`, `detect-transport`, `ingest`, `query`, `save`, `status`, `continue`, and `lint`.
+- Local `.md` batch ingest under `.raw/`.
 - Automated artifact-level equivalence verification for the core local loop.
 
 ## Current Boundaries
@@ -185,7 +206,7 @@ The adapter assets are repo-local. The MVP does not automatically install global
 - Official `obsidian` CLI read/write/append/list/search is used only after vault binding and capability verification; otherwise filesystem fallback remains active.
 - Full `claude-obsidian` parity is not claimed.
 - Claude Code plugin/hooks/subagent behavior is not implemented in neutral core.
-- URL ingest, batch ingest, deep retrieval, vector search, LLM synthesis, and marketplace publishing are outside the MVP.
+- URL ingest, HTML cleanup, image ingest, deep retrieval, vector search, LLM synthesis, and marketplace publishing are outside R3.1.
 - Byte-for-byte equality of LLM-authored prose is intentionally not required for an LLM Wiki.
 
 ## Troubleshooting
