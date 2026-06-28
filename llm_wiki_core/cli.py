@@ -10,6 +10,7 @@ from llm_wiki_core import __version__
 from llm_wiki_core.operations.continue_ import continue_wiki
 from llm_wiki_core.operations.detect_transport import detect_transport
 from llm_wiki_core.operations.ingest import ingest_source
+from llm_wiki_core.operations.ingest_batch import ingest_batch
 from llm_wiki_core.operations.init import init_vault
 from llm_wiki_core.operations.lint import lint_wiki
 from llm_wiki_core.operations.query import query_wiki
@@ -47,6 +48,15 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_parser.add_argument("source", help="Vault-relative raw source path under .raw/.")
     ingest_parser.add_argument("--force", action="store_true", help="Re-ingest even when the source is unchanged.")
     _add_json_option(ingest_parser)
+
+    ingest_batch_parser = subparsers.add_parser(
+        "ingest-batch",
+        help="Ingest Markdown raw sources under a .raw/ root.",
+    )
+    ingest_batch_parser.add_argument("vault", help="Path to the vault root.")
+    ingest_batch_parser.add_argument("source_root", help="Vault-relative .raw/ root or Markdown file.")
+    ingest_batch_parser.add_argument("--force", action="store_true", help="Re-ingest even when sources are unchanged.")
+    _add_json_option(ingest_batch_parser)
 
     query_parser = subparsers.add_parser("query", help="Query the local LLM Wiki.")
     query_parser.add_argument("vault", help="Path to the vault root.")
@@ -109,6 +119,9 @@ def _execute(args: argparse.Namespace) -> object | None:
     if args.command == "ingest":
         return ingest_source(args.vault, args.source, force=args.force)
 
+    if args.command == "ingest-batch":
+        return ingest_batch(args.vault, args.source_root, force=args.force)
+
     if args.command == "query":
         return query_wiki(args.vault, args.question, depth=args.depth)
 
@@ -152,6 +165,20 @@ def _print_text_result(command: str, result: object) -> None:
         print(f"created: {len(result.files_created)}")
         print(f"updated: {len(result.files_updated)}")
         print(f"skipped: {len(result.files_skipped)}")
+        print(f"next: {result.next_suggested_action}")
+
+    if command == "ingest-batch":
+        print(f"{result.operation} {result.status}")
+        print(f"root: {result.root_path}")
+        print(f"total: {result.total}")
+        print(f"succeeded: {result.succeeded}")
+        print(f"skipped: {result.skipped}")
+        print(f"failed: {result.failed}")
+        failed_items = [item for item in result.items if item.status == "failed"]
+        if failed_items:
+            print("failed items:")
+            for item in failed_items:
+                print(f"- {item.source_path}: {item.error_type}: {item.error_message}")
         print(f"next: {result.next_suggested_action}")
 
     if command == "query":
