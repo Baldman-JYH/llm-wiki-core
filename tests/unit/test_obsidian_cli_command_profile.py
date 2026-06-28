@@ -48,11 +48,13 @@ def test_official_obsidian_profile_builds_name_value_commands() -> None:
 def test_transport_package_exports_obsidian_cli_symbols() -> None:
     from llm_wiki_core.transport import (
         ObsidianCliProfile,
+        ObsidianCliRunner,
         ObsidianCliRunResult,
         SubprocessObsidianCliRunner,
     )
 
     assert ObsidianCliProfile.__name__ == "ObsidianCliProfile"
+    assert ObsidianCliRunner.__name__ == "ObsidianCliRunner"
     assert SubprocessObsidianCliRunner.__name__ == "SubprocessObsidianCliRunner"
     assert ObsidianCliRunResult.__name__ == "ObsidianCliRunResult"
 
