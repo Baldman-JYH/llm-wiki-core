@@ -215,7 +215,7 @@ def test_ingest_batch_captures_per_file_failure_and_continues(tmp_path) -> None:
             }
 
         def exists(self, relative_path: str) -> bool:
-            return relative_path == ".raw/articles" or relative_path in self.files
+            return relative_path in {".raw/articles", ".raw/articles/broken.md"} or relative_path in self.files
 
         def list_markdown(self, root: str) -> list[str]:
             self.list_calls.append(root)
