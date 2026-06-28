@@ -3,7 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from llm_wiki_core.operations.ingest import IngestResult, _normalize_source_path, _title_from_source_path, ingest_source
+from llm_wiki_core.operations.ingest import (
+    IngestResult,
+    _load_manifest,
+    _normalize_source_path,
+    _title_from_source_path,
+    ingest_source,
+)
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
@@ -77,6 +83,12 @@ def ingest_batch(
 
         claimed_targets[target_page] = source_path
         try:
+            manifest_conflict = _find_manifest_conflicting_source(active_transport, source_path, target_page)
+            if manifest_conflict is not None:
+                raise ValueError(
+                    f"Source page conflict: {target_page} is already owned by {manifest_conflict}; "
+                    f"refusing to ingest {source_path}"
+                )
             result = ingest_source(root, source_path, force=force, transport=active_transport)
         except Exception as error:  # noqa: BLE001 - batch mode must record per-source failures.
             items.append(
@@ -141,6 +153,23 @@ def _is_missing_error(error: Exception) -> bool:
 def _target_source_page(source_path: str) -> str:
     title = _title_from_source_path(_normalize_source_path(source_path))
     return (Path("wiki") / "sources" / f"{title}.md").as_posix()
+
+
+def _find_manifest_conflicting_source(transport: object, source_path: str, target_page: str) -> str | None:
+    manifest = _load_manifest(transport)
+    current_source = _validate_raw_source_root(_normalize_source_path(source_path))
+    sources = manifest["sources"]
+
+    for manifest_key, record in sources.items():
+        generated_pages = record.get("generated_pages", [])
+        if target_page not in generated_pages:
+            continue
+
+        recorded_source = record.get("source_path") or f".raw/{manifest_key}"
+        if recorded_source != current_source:
+            return str(recorded_source)
+
+    return None
 
 
 def _item_from_ingest_result(result: IngestResult) -> BatchIngestItem:

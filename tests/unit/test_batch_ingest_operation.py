@@ -166,6 +166,45 @@ def test_ingest_batch_duplicate_basename_does_not_silently_overwrite(tmp_path) -
     assert manifest["sources"]["a/report.md"]["generated_pages"] == ["wiki/sources/Report.md"]
 
 
+def test_ingest_batch_rejects_cross_batch_duplicate_basename_without_overwriting_existing_source_page(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest_batch import ingest_batch
+
+    _init_batch_vault(tmp_path)
+    _write_raw(tmp_path, "a/report.md", "# First Report\n\nAlpha source.")
+
+    first = ingest_batch(tmp_path, ".raw/a")
+    assert first.status == "success"
+    assert first.succeeded == 1
+
+    source_page = tmp_path / "wiki" / "sources" / "Report.md"
+    first_source_page = source_page.read_text(encoding="utf-8")
+    first_manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+
+    _write_raw(tmp_path, "b/report.md", "# Second Report\n\nBeta source.")
+
+    second = ingest_batch(tmp_path, ".raw/b")
+
+    assert second.status == "failed"
+    assert second.total == 1
+    assert second.succeeded == 0
+    assert second.failed == 1
+    assert [item.status for item in second.items] == ["failed"]
+    failed_item = second.items[0]
+    assert failed_item.source_path == ".raw/b/report.md"
+    assert failed_item.error_type == "ValueError"
+    assert "wiki/sources/Report.md" in (failed_item.error_message or "")
+    assert ".raw/a/report.md" in (failed_item.error_message or "")
+
+    assert source_page.read_text(encoding="utf-8") == first_source_page
+    assert 'source_path: ".raw/a/report.md"' in first_source_page
+    assert ".raw/b/report.md" not in source_page.read_text(encoding="utf-8")
+
+    manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+    assert manifest["sources"] == first_manifest["sources"]
+    assert sorted(manifest["sources"]) == ["a/report.md"]
+    assert "b/report.md" not in manifest["sources"]
+
+
 def test_ingest_batch_directory_root_discovers_before_exists_probe(tmp_path) -> None:
     from llm_wiki_core.operations.ingest_batch import ingest_batch
 
