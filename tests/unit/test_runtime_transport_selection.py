@@ -90,3 +90,111 @@ def test_runtime_transport_warns_and_uses_filesystem_for_invalid_snapshot(tmp_pa
     assert selection.snapshot_preferred is None
     assert any("not valid JSON" in warning for warning in selection.warnings)
 
+
+def test_runtime_transport_selects_verified_official_obsidian_snapshot(tmp_path) -> None:
+    from llm_wiki_core.transport import ObsidianCliTransport, select_runtime_transport
+
+    snapshot = tmp_path / ".vault-meta" / "transport.json"
+    snapshot.parent.mkdir(parents=True)
+    snapshot.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "preferred": "obsidian",
+                "fallback_chain": ["obsidian", "filesystem"],
+                "available": {
+                    "obsidian": {
+                        "available": True,
+                        "implemented": True,
+                        "executable": "obsidian",
+                        "vault_selector": "Vault",
+                        "capabilities": {
+                            "read": True,
+                            "write": True,
+                            "append": True,
+                            "list": True,
+                            "search": True,
+                        },
+                    },
+                    "filesystem": {"available": True, "implemented": True},
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    selection = select_runtime_transport(tmp_path)
+
+    assert selection.name == "obsidian"
+    assert isinstance(selection.transport, ObsidianCliTransport)
+    assert selection.warnings == []
+
+
+def test_runtime_transport_falls_back_when_obsidian_capabilities_are_incomplete(tmp_path) -> None:
+    from llm_wiki_core.transport import FilesystemTransport, select_runtime_transport
+
+    snapshot = tmp_path / ".vault-meta" / "transport.json"
+    snapshot.parent.mkdir(parents=True)
+    snapshot.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "preferred": "obsidian",
+                "available": {
+                    "obsidian": {
+                        "available": True,
+                        "implemented": True,
+                        "executable": "obsidian",
+                        "vault_selector": "Vault",
+                        "capabilities": {
+                            "read": True,
+                            "write": True,
+                            "append": False,
+                            "list": True,
+                            "search": True,
+                        },
+                    },
+                    "filesystem": {"available": True, "implemented": True},
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    selection = select_runtime_transport(tmp_path)
+
+    assert selection.name == "filesystem"
+    assert isinstance(selection.transport, FilesystemTransport)
+    assert any("missing required capabilities" in warning for warning in selection.warnings)
+
+
+def test_runtime_transport_falls_back_from_legacy_obsidian_cli_snapshot(tmp_path) -> None:
+    from llm_wiki_core.transport import select_runtime_transport
+
+    snapshot = tmp_path / ".vault-meta" / "transport.json"
+    snapshot.parent.mkdir(parents=True)
+    snapshot.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "preferred": "obsidian-cli",
+                "available": {
+                    "obsidian-cli": {
+                        "available": True,
+                        "implemented": False,
+                        "transport_kind": "legacy",
+                    },
+                    "filesystem": {"available": True, "implemented": True},
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    selection = select_runtime_transport(tmp_path)
+
+    assert selection.name == "filesystem"
+    assert any("legacy" in warning for warning in selection.warnings)
