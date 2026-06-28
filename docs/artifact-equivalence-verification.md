@@ -61,8 +61,7 @@ The current MVP satisfies artifact-level equivalence for the core local Codex Ap
 
 ## Boundaries
 
-- Actual Obsidian CLI read/write/search is not implemented.
+- Official `obsidian` CLI transport is optional and verified-only; filesystem remains the artifact-equivalence baseline.
 - Claude Code plugin/hooks/subagent behavior is not implemented in the neutral core.
 - URL ingest, batch ingest, deep retrieval, vector search, and LLM synthesis are not part of this verification.
 - Generated prose is not compared byte-for-byte.
-

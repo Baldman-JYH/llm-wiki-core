@@ -23,8 +23,8 @@ This means the local Codex App and Codex CLI practice path is complete for the f
 - If `llm-wiki` is not visible on `PATH`, users can run `python -m llm_wiki_core`.
 - Windows users can use native PowerShell without WSL or Git Bash.
 - The implemented runtime transport is filesystem.
-- Obsidian CLI actual read/write/search is not implemented.
-- Obsidian CLI detection may record availability, but it does not become runtime preferred until actual read/write/search exists.
+- R2 adds an optional official `obsidian` CLI runtime path.
+- The official `obsidian` CLI is selected only after vault binding and read/write/append/list/search capability probes pass; otherwise filesystem fallback remains active.
 - Raw sources stay under `.raw/` and are preserved.
 - Wiki artifacts are maintained under `wiki/`.
 - `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md` support cross-session continuity.
@@ -44,7 +44,7 @@ This means the local Codex App and Codex CLI practice path is complete for the f
 ## Not Included In MVP Completion
 
 - Full claude-obsidian parity is not the MVP completion criterion.
-- Actual Obsidian CLI read/write/search.
+- Obsidian CLI runtime hardening beyond the R2 verified-only path.
 - Claude Code plugin/hooks/subagent behavior.
 - URL ingest.
 - batch ingest.

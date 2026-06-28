@@ -24,13 +24,13 @@ The implemented tier focuses on the Karpathy LLM Wiki loop:
 
 ## Transport Roadmap
 
-- Obsidian CLI actual read/write/search.
+- Obsidian CLI integration hardening after R2 verified-only runtime selection.
 - Transport-level conflict detection.
 - Transport capability negotiation.
 - Optional MCP transport.
 - Optional REST API transport.
 
-The current runtime remains filesystem until another transport is implemented and verified.
+The portable baseline remains filesystem. The official `obsidian` CLI is optional and can be selected only after verification succeeds.
 
 ## Ingest And Retrieval Roadmap
 

@@ -20,7 +20,7 @@
 - `hot.md`：跨会话近期上下文。
 - `index.md`：内容目录。
 - `log.md`：操作时间线。
-- transport fallback：当前以 filesystem 作为已实现 runtime transport；Obsidian CLI 可检测、可记录，actual read/write/search 实现完成后再成为可选增强通道。
+- transport fallback：filesystem 仍是稳定兜底通道；official `obsidian` CLI 是可选 verified-only 通道，只有 vault binding 与 read/write/append/list/search capability probe 全部通过后才会启用。
 
 ## 不直接复制的内容
 

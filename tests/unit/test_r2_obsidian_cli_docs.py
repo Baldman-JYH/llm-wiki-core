@@ -10,6 +10,12 @@ PUBLIC_DOCS = (
     "docs/user-guide.md",
     "docs/transport-contract.md",
     "docs/r2-obsidian-cli-transport-report.md",
+    "docs/roadmap.md",
+    "docs/completion-criteria.md",
+    "docs/release-readiness-checklist.md",
+    "docs/artifact-equivalence-verification.md",
+    "docs/obsidian-cli-transport-boundary-rehearsal.md",
+    "docs/reference-implementation-alignment.md",
 )
 
 
@@ -65,3 +71,28 @@ def test_public_docs_keep_karpathy_claude_and_neutral_core_framing() -> None:
     assert ("reference implementation" in lower) or ("参考实现" in corpus)
     assert "llm-wiki-core" in lower
     assert ("neutral" in lower) or ("中性核心" in corpus) or ("中性" in corpus)
+
+
+def test_public_docs_do_not_claim_r2_obsidian_runtime_is_unimplemented() -> None:
+    corpus = _public_docs_corpus()
+    stale_fragments = [
+        "Actual Obsidian CLI read/write/search is not implemented",
+        "actual Obsidian CLI read/write/search is not implemented",
+        "actual read/write/search through Obsidian CLI remains outside the MVP",
+        "actual read/write/search 实现前不作为 runtime preferred",
+        "Actual Obsidian CLI read / write / search integration",
+        "Obsidian CLI actual read/write/search",
+    ]
+
+    for fragment in stale_fragments:
+        assert fragment not in corpus
+
+
+def test_public_docs_describe_obsidian_cli_as_optional_verified_runtime() -> None:
+    corpus = _public_docs_corpus()
+
+    assert "official `obsidian` CLI" in corpus
+    assert "filesystem fallback" in corpus
+    assert "read/write/append/list/search" in corpus
+    assert "capability probe" in corpus
+    assert "legacy `obsidian-cli`" in corpus

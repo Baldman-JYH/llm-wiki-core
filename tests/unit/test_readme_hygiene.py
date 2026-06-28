@@ -43,7 +43,13 @@ def test_readme_avoids_internal_status_jargon() -> None:
         "full `claude-obsidian` parity",
         "preferred runtime",
         "actual read/write/search",
+        "实际读写与搜索能力实现前",
+        "尚未实现 Obsidian CLI 的实际读写与搜索调用",
         "D:/ai/llmWiki",
     ]
     for fragment in forbidden_fragments:
         assert fragment not in readme
+
+    assert "official `obsidian` CLI" in readme
+    assert "filesystem fallback" in readme
+    assert "验证通过" in readme

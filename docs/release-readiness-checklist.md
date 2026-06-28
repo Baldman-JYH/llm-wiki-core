@@ -40,7 +40,8 @@ Status: Ready for MVP local use; not ready for full claude-obsidian parity.
 - [x] `filesystem` is the implemented runtime transport.
 - [x] Obsidian CLI detection records availability separately from implementation.
 - [x] Obsidian CLI is not required for the MVP.
-- [x] Obsidian CLI actual read/write/search is not implemented and is documented as a boundary.
+- [x] MVP release notes document that Obsidian CLI was not required for `v0.1.0-mvp`.
+- [x] R2 documentation now records the verified-only official `obsidian` CLI runtime path.
 
 ## Artifact Verification
 
@@ -69,7 +70,7 @@ Status: Ready for MVP local use; not ready for full claude-obsidian parity.
 ## Not Ready Yet
 
 - [ ] Full `claude-obsidian` feature parity.
-- [ ] Actual Obsidian CLI read/write/search.
+- [ ] Obsidian CLI runtime hardening beyond the R2 verified-only path.
 - [ ] Claude Code plugin/hooks/subagent behavior inside the neutral core.
 - [ ] URL ingest.
 - [ ] Batch ingest.

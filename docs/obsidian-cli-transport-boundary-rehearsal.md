@@ -1,12 +1,14 @@
 # Obsidian CLI Transport Boundary Rehearsal
 
+> Historical note: this rehearsal documents the MVP/R1 boundary before R2. Current R2 behavior is documented in `docs/r2-obsidian-cli-transport-report.md`: official `obsidian` CLI can be runtime eligible only after vault binding and read/write/append/list/search capability probes pass.
+
 Date: 2026-06-26
 
 ## Purpose
 
 Verify that Obsidian CLI detection does not cause the MVP to prefer an unimplemented transport.
 
-The current reliable runtime transport is filesystem. Obsidian CLI can be detected and recorded, but actual read/write/search through Obsidian CLI remains outside the MVP.
+For the original MVP boundary, the reliable runtime transport was filesystem. After R2, the official `obsidian` CLI is optional and verified-only, while filesystem remains the fallback.
 
 ## Commands Rehearsed
 
@@ -35,7 +37,6 @@ SNAPSHOT filesystem_implemented=True
 
 ## Boundary
 
-`ObsidianCliTransport` exists only as a contract placeholder. Its methods raise `ObsidianCliTransportNotImplementedError` until actual Obsidian CLI read/write/search behavior is implemented and tested.
+This historical rehearsal predates the R2 `ObsidianCliTransport` implementation. R2 replaced the placeholder with a fake-runner-tested transport that is selected only after capability verification.
 
 This keeps the LLM Wiki artifact path honest: current core operations use filesystem transport, while Obsidian CLI remains a future desktop integration boundary.
-
