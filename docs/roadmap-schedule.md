@@ -49,12 +49,21 @@ Exit criteria:
 
 Window: 2026-07-04 to 2026-07-17
 
+Status: complete.
+
 Scope:
 
 - actual Obsidian CLI read/write/search design.
 - Obsidian CLI command probing.
 - Transport capability negotiation.
 - Conflict and fallback behavior.
+
+Completed outcome:
+
+- Added official `obsidian` CLI runtime selection boundaries and documentation.
+- Preserved legacy `obsidian-cli` detection as metadata only.
+- Documented capability probe gating and filesystem fallback behavior.
+- Added R2 documentation guard tests.
 
 Exit criteria:
 

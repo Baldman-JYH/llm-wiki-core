@@ -4,14 +4,14 @@ Date: 2026-06-26
 
 This guide is for local Codex App and Codex CLI users who want to use `llm-wiki-core` as a neutral LLM Wiki practice implementation.
 
-The canonical abstract idea is Karpathy's LLM Wiki pattern: humans choose sources and ask questions; the LLM maintains a durable Markdown Wiki instead of leaving knowledge trapped in chat history. `claude-obsidian` is the current Claude Code + Obsidian reference implementation of that idea. `llm-wiki-core` keeps the core neutral so Codex and future local agents can produce artifact-level equivalence: the same kind of durable folders, files, metadata, wikilinks, logs, hot context, and lint results, without requiring byte-for-byte equality of LLM-authored prose.
+The canonical abstract idea is Karpathy's LLM Wiki pattern: humans choose sources and ask questions; the LLM maintains a durable Markdown Wiki instead of leaving knowledge trapped in chat history. [`claude-obsidian`](https://github.com/AgriciDaniel/claude-obsidian) is a reference implementation for the Claude Code + Obsidian workflow. `llm-wiki-core` keeps the core neutral so Codex and future local agents can produce artifact-level equivalence: the same kind of durable folders, files, metadata, wikilinks, logs, hot context, and lint results, without requiring byte-for-byte equality of LLM-authored prose.
 
 ## Prerequisites
 
 - Python 3.10 or newer.
 - Local Codex App or Codex CLI.
 - Windows users can use native PowerShell. WSL and Git Bash are not required for the MVP.
-- Obsidian CLI is optional. It may be detected, but actual Obsidian CLI read/write/search is not implemented yet.
+- Obsidian CLI is optional and not required.
 
 ## Install
 
@@ -74,7 +74,17 @@ Expected core artifacts:
 - `wiki/meta/`
 - `AGENTS.md`
 
-The current implemented runtime transport is `filesystem`. A transport snapshot may record whether Obsidian CLI is available, but `filesystem` remains the runtime path until Obsidian CLI read/write/search is implemented.
+The current implemented runtime transport is `filesystem`. A transport snapshot may record whether Obsidian CLI is available, but `filesystem` remains the runtime path until runtime eligibility is verified.
+
+## Optional Obsidian CLI Runtime
+
+Obsidian CLI is not required. The default portable path remains filesystem fallback.
+
+When the official `obsidian` CLI is installed, enabled in Obsidian, and verified against the target vault, `llm-wiki-core` may use it for read/write/append/list/search.
+
+If verification fails, commands continue through filesystem fallback.
+
+The legacy `obsidian-cli` command is not used as an R2 runtime transport.
 
 ## Add Raw Sources
 
@@ -182,6 +192,6 @@ The adapter assets are repo-local. The MVP does not automatically install global
 
 - If `llm-wiki` is not found, rerun `python -m pip install -e .` from the project root.
 - If the shell still cannot find `llm-wiki`, use `python -m llm_wiki_core ...` as the equivalent local fallback.
-- If transport detection records Obsidian CLI, remember that the current runtime still uses `filesystem`.
+- If transport detection records Obsidian CLI, remember that runtime selection still uses filesystem fallback until the official `obsidian` CLI verifies successfully.
 - If lint reports high-severity dead links, inspect the generated `wiki/meta/lint-report-YYYY-MM-DD.md`.
 - On Windows, prefer PowerShell commands and UTF-8 text files.
