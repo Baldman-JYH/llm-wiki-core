@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+import os
 from pathlib import Path
 
 from llm_wiki_core.transport.filesystem import FilesystemTransport
@@ -84,6 +85,17 @@ def _warnings_for_snapshot(snapshot: dict[str, object], preferred_name: str | No
 def _obsidian_transport_from_snapshot(
     root: Path, snapshot: dict[str, object]
 ) -> RuntimeTransportSelection | list[str]:
+    snapshot_vault_root = snapshot.get("vault_root")
+    if not isinstance(snapshot_vault_root, str) or not snapshot_vault_root:
+        return ["Preferred transport 'obsidian' snapshot is missing vault root metadata; using filesystem."]
+
+    current_root = _normalize_path_for_compare(root)
+    bound_root = _normalize_path_for_compare(snapshot_vault_root)
+    if current_root != bound_root:
+        return [
+            "Preferred transport 'obsidian' snapshot belongs to a different vault root; using filesystem."
+        ]
+
     available = snapshot.get("available", {})
     if not isinstance(available, dict):
         return ["Preferred transport 'obsidian' has no availability metadata; using filesystem."]
@@ -96,6 +108,10 @@ def _obsidian_transport_from_snapshot(
         return ["Preferred transport 'obsidian' is not available; using filesystem."]
     if not bool(metadata.get("implemented", False)):
         return ["Preferred transport 'obsidian' is not implemented; using filesystem."]
+
+    transport_kind = metadata.get("transport_kind")
+    if transport_kind != "official":
+        return ["Preferred transport 'obsidian' has unsupported transport kind metadata; using filesystem."]
 
     capabilities = metadata.get("capabilities", {})
     if not isinstance(capabilities, dict) or not all(
@@ -116,3 +132,11 @@ def _obsidian_transport_from_snapshot(
         transport=ObsidianCliTransport(root, executable=executable, vault_selector=vault_selector),
         snapshot_preferred="obsidian",
     )
+
+
+def _normalize_path_for_compare(path_value: str | Path) -> str:
+    try:
+        normalized = str(Path(path_value).resolve()).replace("\\", "/")
+    except OSError:
+        normalized = str(path_value).replace("\\", "/")
+    return os.path.normcase(normalized)

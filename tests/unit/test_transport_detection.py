@@ -45,6 +45,8 @@ def test_detect_transport_records_official_obsidian_probe_failure_as_filesystem(
         def run(self, argv: list[str], timeout_seconds: int):
             from llm_wiki_core.transport.obsidian_cli_runner import ObsidianCliRunResult
 
+            if argv == ["obsidian", "vault=transport-detection", "vault", "info=path"]:
+                return ObsidianCliRunResult(argv, 0, str(tmp_path.resolve()), "")
             if argv[:2] == ["obsidian", "--help"]:
                 return ObsidianCliRunResult(argv, 0, "read\ncreate\nappend\nfiles\nsearch:context\n", "")
             return ObsidianCliRunResult(argv, 1, "", "Obsidian app is not running")
@@ -52,7 +54,7 @@ def test_detect_transport_records_official_obsidian_probe_failure_as_filesystem(
     monkeypatch.setenv("PATH", "")
 
     result = detect_transport(
-        tmp_path,
+        tmp_path / "transport-detection",
         force=True,
         runner=ProbeFailRunner(),
         which=lambda name: "obsidian" if name == "obsidian" else None,
@@ -65,6 +67,49 @@ def test_detect_transport_records_official_obsidian_probe_failure_as_filesystem(
     assert "probe failed" in result.snapshot.available["obsidian"].reason
 
 
+def test_detect_transport_falls_back_when_vault_binding_points_elsewhere(tmp_path, monkeypatch) -> None:
+    from llm_wiki_core.operations.detect_transport import detect_transport
+
+    class WrongVaultRunner:
+        def __init__(self) -> None:
+            self.calls: list[list[str]] = []
+
+        def run(self, argv: list[str], timeout_seconds: int):
+            from llm_wiki_core.transport.obsidian_cli_runner import ObsidianCliRunResult
+
+            self.calls.append(list(argv))
+            if argv == ["obsidian", "vault=Vault", "vault", "info=path"]:
+                return ObsidianCliRunResult(argv, 0, str((tmp_path / "other-vault").resolve()), "")
+            if argv[:2] == ["obsidian", "--help"]:
+                return ObsidianCliRunResult(argv, 0, "read\ncreate\nappend\nfiles\nsearch:context\n", "")
+            return ObsidianCliRunResult(argv, 1, "", "unexpected")
+
+    runner = WrongVaultRunner()
+    monkeypatch.setenv("PATH", "")
+    root = tmp_path / "Vault"
+
+    result = detect_transport(
+        root,
+        force=True,
+        runner=runner,
+        which=lambda name: "obsidian" if name == "obsidian" else None,
+    )
+
+    official = result.snapshot.available["obsidian"]
+    assert result.snapshot.preferred == "filesystem"
+    assert official.available is True
+    assert official.implemented is False
+    assert official.capabilities == {
+        "read": False,
+        "write": False,
+        "append": False,
+        "list": False,
+        "search": False,
+    }
+    assert "bound to a different vault path" in official.reason
+    assert runner.calls == [["obsidian", "vault=Vault", "vault", "info=path"]]
+
+
 def test_detect_transport_can_prefer_official_obsidian_after_all_probes_pass(tmp_path, monkeypatch) -> None:
     from llm_wiki_core.operations.detect_transport import detect_transport
 
@@ -72,7 +117,9 @@ def test_detect_transport_can_prefer_official_obsidian_after_all_probes_pass(tmp
         def run(self, argv: list[str], timeout_seconds: int):
             from llm_wiki_core.transport.obsidian_cli_runner import ObsidianCliRunResult
 
-            command = argv[1]
+            command = argv[2] if len(argv) > 2 else argv[1]
+            if argv == ["obsidian", "vault=Vault", "vault", "info=path"]:
+                return ObsidianCliRunResult(argv, 0, str((tmp_path / "Vault").resolve()), "")
             if command == "--help":
                 return ObsidianCliRunResult(argv, 0, "read\ncreate\nappend\nfiles\nsearch:context\n", "")
             if command == "read" and "path=wiki/index.md" in argv:
@@ -90,9 +137,10 @@ def test_detect_transport_can_prefer_official_obsidian_after_all_probes_pass(tmp
             return ObsidianCliRunResult(argv, 1, "", "unexpected")
 
     monkeypatch.setenv("PATH", "")
+    root = tmp_path / "Vault"
 
     result = detect_transport(
-        tmp_path,
+        root,
         force=True,
         runner=ProbePassRunner(),
         which=lambda name: "obsidian" if name == "obsidian" else None,
@@ -103,7 +151,7 @@ def test_detect_transport_can_prefer_official_obsidian_after_all_probes_pass(tmp
     assert result.snapshot.fallback_chain == ["obsidian", "filesystem"]
     assert official.available is True
     assert official.implemented is True
-    assert official.vault_selector == tmp_path.name
+    assert official.vault_selector == "Vault"
     assert official.capabilities == {
         "read": True,
         "write": True,
@@ -111,7 +159,7 @@ def test_detect_transport_can_prefer_official_obsidian_after_all_probes_pass(tmp
         "list": True,
         "search": True,
     }
-    assert not (tmp_path / ".vault-meta" / "obsidian-cli-probe.md").exists()
+    assert not (root / ".vault-meta" / "obsidian-cli-probe.md").exists()
 
 
 def test_detect_transport_records_legacy_obsidian_cli_as_unimplemented(tmp_path, monkeypatch) -> None:
@@ -143,6 +191,7 @@ def test_transport_snapshot_json_shape(tmp_path, monkeypatch) -> None:
     assert snapshot["schema_version"] == 1
     assert snapshot["preferred"] == "filesystem"
     assert snapshot["fallback_chain"] == ["filesystem"]
+    assert snapshot["vault_root"] == str(tmp_path.resolve()).replace("\\", "/")
     assert snapshot["available"]["filesystem"]["available"] is True
     assert snapshot["available"]["filesystem"]["implemented"] is True
     assert snapshot["available"]["obsidian-cli"]["implemented"] is False

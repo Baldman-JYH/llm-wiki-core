@@ -46,6 +46,7 @@ def test_user_guide_documents_obsidian_cli_setup_without_requiring_it() -> None:
     assert "Obsidian CLI" in guide
     assert "filesystem fallback" in guide
     assert "not required" in guide
+    assert "Actual Obsidian CLI read/write/search is not implemented." not in guide
 
 
 def test_public_docs_avoid_local_absolute_paths() -> None:

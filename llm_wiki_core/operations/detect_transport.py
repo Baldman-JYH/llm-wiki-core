@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
+import os
 import platform
 from pathlib import Path
 import shutil
@@ -187,6 +188,26 @@ def _probe_official_obsidian(
     )
 
     try:
+        binding_result = transport.runner.run(
+            profile.vault_info_path_argv(),
+            timeout_seconds=profile.timeout_seconds,
+        )
+        if binding_result.returncode != 0:
+            message = binding_result.stderr.strip() or "vault binding probe failed"
+            return False, capabilities, vault_selector, f"official Obsidian CLI probe failed: {message}"
+
+        bound_path = binding_result.stdout.strip()
+        expected_root = _normalize_path_for_compare(root)
+        actual_root = _normalize_path_for_compare(bound_path)
+        if not bound_path or actual_root != expected_root:
+            return (
+                False,
+                capabilities,
+                vault_selector,
+                "official Obsidian CLI probe failed: selector is bound to a different vault path "
+                f"(expected {expected_root}, got {actual_root or '<empty>'}).",
+            )
+
         help_result = transport.runner.run(profile.help_argv(), timeout_seconds=profile.timeout_seconds)
         if help_result.returncode != 0:
             message = help_result.stderr.strip() or "help probe failed"
@@ -237,10 +258,20 @@ def _probe_official_obsidian(
 
 
 def _normalize_executable_path(executable: str) -> str:
+    if executable == Path(executable).name:
+        return executable
     try:
         return str(Path(executable).resolve()).replace("\\", "/")
     except OSError:
         return executable.replace("\\", "/")
+
+
+def _normalize_path_for_compare(path_value: str | Path) -> str:
+    try:
+        normalized = str(Path(path_value).resolve()).replace("\\", "/")
+    except OSError:
+        normalized = str(path_value).replace("\\", "/")
+    return os.path.normcase(normalized)
 
 
 def _load_snapshot(path: Path) -> TransportSnapshot:

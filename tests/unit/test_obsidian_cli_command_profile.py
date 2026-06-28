@@ -7,39 +7,45 @@ def test_official_obsidian_profile_builds_name_value_commands() -> None:
     profile = ObsidianCliProfile(executable="obsidian", vault_selector="Research Vault")
 
     assert profile.help_argv() == ["obsidian", "--help"]
+    assert profile.vault_info_path_argv() == [
+        "obsidian",
+        "vault=Research Vault",
+        "vault",
+        "info=path",
+    ]
     assert profile.read_argv("wiki/index.md") == [
         "obsidian",
-        "read",
         "vault=Research Vault",
+        "read",
         "path=wiki/index.md",
     ]
-    write_argv = profile.write_argv("wiki/notes/热缓存.md", "line 1\nline 2\n")
+    write_argv = profile.write_argv("wiki/notes/hot-cache.md", "line 1\nline 2\n")
     assert write_argv == [
         "obsidian",
-        "create",
         "vault=Research Vault",
-        "path=wiki/notes/热缓存.md",
+        "create",
+        "path=wiki/notes/hot-cache.md",
         "content=line 1\nline 2\n",
-        "overwrite=true",
+        "overwrite",
     ]
-    assert write_argv[3] == "path=wiki/notes/热缓存.md"
+    assert write_argv[3] == "path=wiki/notes/hot-cache.md"
     assert profile.append_argv("wiki/log.md", "append\n") == [
         "obsidian",
-        "append",
         "vault=Research Vault",
+        "append",
         "path=wiki/log.md",
         "content=append\n",
     ]
     assert profile.files_argv("wiki") == [
         "obsidian",
-        "files",
         "vault=Research Vault",
-        "path=wiki",
+        "files",
+        "folder=wiki",
     ]
     assert profile.search_argv("hot cache", "wiki") == [
         "obsidian",
-        "search:context",
         "vault=Research Vault",
+        "search:context",
         "query=hot cache",
         "path=wiki",
     ]

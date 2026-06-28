@@ -182,7 +182,7 @@ The adapter assets are repo-local. The MVP does not automatically install global
 
 ## Current Boundaries
 
-- Actual Obsidian CLI read/write/search is not implemented.
+- Official `obsidian` CLI read/write/append/list/search is used only after vault binding and capability verification; otherwise filesystem fallback remains active.
 - Full `claude-obsidian` parity is not claimed.
 - Claude Code plugin/hooks/subagent behavior is not implemented in neutral core.
 - URL ingest, batch ingest, deep retrieval, vector search, LLM synthesis, and marketplace publishing are outside the MVP.

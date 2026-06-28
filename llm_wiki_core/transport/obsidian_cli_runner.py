@@ -47,36 +47,39 @@ class ObsidianCliProfile:
     def help_argv(self) -> list[str]:
         return [self.executable, "--help"]
 
+    def vault_info_path_argv(self) -> list[str]:
+        return [self.executable, self._vault_arg(), "vault", "info=path"]
+
     def read_argv(self, relative_path: str) -> list[str]:
-        return [self.executable, "read", self._vault_arg(), f"path={relative_path}"]
+        return [self.executable, self._vault_arg(), "read", f"path={relative_path}"]
 
     def write_argv(self, relative_path: str, content: str) -> list[str]:
         return [
             self.executable,
-            "create",
             self._vault_arg(),
+            "create",
             f"path={relative_path}",
             f"content={content}",
-            "overwrite=true",
+            "overwrite",
         ]
 
     def append_argv(self, relative_path: str, content: str) -> list[str]:
         return [
             self.executable,
-            "append",
             self._vault_arg(),
+            "append",
             f"path={relative_path}",
             f"content={content}",
         ]
 
     def files_argv(self, root: str = "wiki") -> list[str]:
-        return [self.executable, "files", self._vault_arg(), f"path={root}"]
+        return [self.executable, self._vault_arg(), "files", f"folder={root}"]
 
     def search_argv(self, query: str, root: str = "wiki") -> list[str]:
         return [
             self.executable,
-            "search:context",
             self._vault_arg(),
+            "search:context",
             f"query={query}",
             f"path={root}",
         ]
