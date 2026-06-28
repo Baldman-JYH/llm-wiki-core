@@ -19,3 +19,6 @@ Thumbs.db
 
 # Local release outputs are generated outside the repository by default.
 release_artifacts/
+
+# Local subagent-driven development scratch files.
+.superpowers/
