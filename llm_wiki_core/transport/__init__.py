@@ -5,8 +5,11 @@ from llm_wiki_core.transport.filesystem import (
     TransportError,
 )
 from llm_wiki_core.transport.obsidian_cli import (
+    ObsidianCliCommandError,
+    ObsidianCliParseError,
+    ObsidianCliTimeoutError,
     ObsidianCliTransport,
-    ObsidianCliTransportNotImplementedError,
+    ObsidianCliTransportError,
 )
 from llm_wiki_core.transport.obsidian_cli_runner import (
     ObsidianCliProfile,
@@ -22,7 +25,10 @@ from llm_wiki_core.transport.runtime import (
 __all__ = [
     "FilesystemTransport",
     "ObsidianCliTransport",
-    "ObsidianCliTransportNotImplementedError",
+    "ObsidianCliTransportError",
+    "ObsidianCliCommandError",
+    "ObsidianCliTimeoutError",
+    "ObsidianCliParseError",
     "ObsidianCliProfile",
     "ObsidianCliRunner",
     "ObsidianCliRunResult",
