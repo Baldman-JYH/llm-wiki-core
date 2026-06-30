@@ -75,7 +75,7 @@ llm-wiki lint <vault>
 
 - CLI: run `llm-wiki` directly after install.
 - Codex App / Codex CLI: initialize a vault and follow the generated `AGENTS.md`.
-- Local automation: every command can return machine-readable JSON with `--json`.
+- Local automation: every command can return 机器可读 JSON with `--json`.
 
 ## 命令速查
 
