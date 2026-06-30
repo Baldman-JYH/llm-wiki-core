@@ -36,8 +36,23 @@ def test_search_documents_ranks_more_relevant_page_first() -> None:
         "wiki/concepts/Durable Wiki.md",
         "wiki/sources/Karpathy LLM Wiki.md",
     ]
-    assert results[0].matched_terms == ["durable", "wiki"]
+    assert results[0].matched_terms == ["durable", "wiki", "knowledge"]
     assert results[0].score > results[1].score
+
+
+def test_search_documents_matched_terms_uses_document_level_tokens() -> None:
+    from llm_wiki_core.retrieval.lexical import SearchDocument, search_documents
+
+    document = SearchDocument(
+        path="wiki/concepts/Durable Wiki.md",
+        title="Durable Wiki",
+        text="# Durable Wiki\n\nA durable wiki keeps durable Markdown knowledge in the wiki.",
+    )
+
+    results = search_documents("durable wiki knowledge", [document], limit=1)
+
+    assert results[0].matched_terms == ["durable", "wiki", "knowledge"]
+    assert results[0].snippet == "# Durable Wiki"
 
 
 def test_search_documents_tie_breaks_by_path() -> None:

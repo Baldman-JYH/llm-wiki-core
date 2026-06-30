@@ -91,7 +91,8 @@ def search_documents(
         score = _bm25_score(item, query_terms, document_frequency, len(indexed), average_length)
         if score <= 0:
             continue
-        snippet, matched_terms = _snippet(item.text, query_terms)
+        matched_terms = [term for term in query_terms if term in item.term_counts]
+        snippet = _snippet(item.text, query_terms)
         ranked.append(
             RankedPage(
                 path=item.path,
@@ -155,22 +156,20 @@ def _bm25_score(
     return score
 
 
-def _snippet(text: str, matched_terms: Sequence[str], *, max_length: int = 180) -> tuple[str, list[str]]:
+def _snippet(text: str, matched_terms: Sequence[str], *, max_length: int = 180) -> str:
     body = _strip_frontmatter(text)
     lines = [line.strip() for line in body.splitlines() if line.strip()]
     folded_terms = [term.casefold() for term in matched_terms]
     selected = lines[0] if lines else ""
-    selected_folded_terms: list[str] = []
     for line in lines:
         folded_line = line.casefold()
         if any(term in folded_line for term in folded_terms):
             selected = line
-            selected_folded_terms = [term for term in matched_terms if term in folded_line]
             break
     collapsed = re.sub(r"\s+", " ", selected).strip()
     if len(collapsed) <= max_length:
-        return collapsed, selected_folded_terms
-    return collapsed[: max_length - 3].rstrip() + "...", selected_folded_terms
+        return collapsed
+    return collapsed[: max_length - 3].rstrip() + "..."
 
 
 def _strip_frontmatter(text: str) -> str:
