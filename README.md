@@ -142,7 +142,7 @@ llm-wiki lint <vault>
 - R3.3 uses dependency-free BM25-style lexical retrieval.
 - R3.3 remains text-first on top of the R3.2 URL ingest foundation.
 - R3.2 is text-only.
-- vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred.
+- Vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred.
 - R3.2 does not include full readability, defuddle, JavaScript rendering, authenticated pages, or crawling.
 - Binary or non-decodable responses are rejected instead of being archived through the text transport.
 - The official `obsidian` CLI remains optional and verified-only; `filesystem fallback` stays available.

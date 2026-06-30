@@ -1,21 +1,23 @@
 # Codex Command Contract
 
-本文定义 Codex App / CLI adapter 的命令语义。
+本文定义 Codex App / Codex CLI adapter 的命令语义。目标是让自然语言触发与 slash command 都能稳定映射到同一组 core operations。
+
+## 入口策略
 
 MVP 采用双层入口策略：
 
 1. 自然语言触发必须可用。
-2. Slash command 是目标体验，用于对齐 Claude Code 使用 `claude-obsidian` 的交互方式。
+2. Slash command 是目标体验，用于对齐 Claude Code 使用 `claude-obsidian` 时的核心操作方式。
 
 如果 Codex App 与 Codex CLI 对 slash command 的支持存在差异，应优先保证自然语言触发加 skill 仍能完成等价核心工作。
 
 ## 设计原则
 
 - 命令语义对齐 `claude-obsidian` 的核心体验。
-- 入口属于 Codex adapter，不属于 core。
-- Core 只定义操作契约，不关心用户如何触发。
+- 命令入口属于 Codex adapter，不属于 neutral core。
+- Core 只定义 operation contract，不关心用户通过什么 UI 触发。
 - 自然语言入口不能是二等路径，必须完整可用。
-- Slash command 可以作为更顺手的 UX 层。
+- Slash command 是更直接的 UX 层，但不是唯一入口。
 
 ## Command Mapping
 
@@ -35,26 +37,26 @@ MVP 采用双层入口策略：
 
 当 vault 未初始化时：
 
-1. 检查当前目录是否已有 `.raw/` 和 `wiki/`。
+1. 检查当前目录是否已经包含 `.raw/` 和 `wiki/`。
 2. 如未初始化，询问这个 vault 的用途。
 3. 使用 generic mode scaffold 创建基础结构。
 4. 创建或更新项目指引文件。
 5. 创建 `index.md`、`log.md`、`hot.md`、`overview.md`。
 6. 创建 `.raw/.manifest.json`。
 7. 运行 `detect-transport`。
-8. 给出下一步建议：放入 raw source 后执行 ingest。
+8. 给出下一步建议，例如先放入 raw source 再执行 `ingest`。
 
 当 vault 已初始化时：
 
 1. 读取 `wiki/hot.md`。
 2. 读取 `wiki/index.md`。
-3. 检查最近 `log`。
+3. 检查最近的 `wiki/log.md` 记录。
 4. 报告当前状态。
-5. 建议继续 ingest、query、lint 或 save。
+5. 建议继续 `ingest`、`search`、`query`、`lint` 或 `save`。
 
 ## `ingest` Semantics
 
-自然语言：
+自然语言示例：
 
 ```text
 ingest .raw/articles/example.md
@@ -73,7 +75,7 @@ add this to the wiki
 1. 确认目标位于 `.raw/`。
 2. 读取 raw source，但不修改它。
 3. 检查 `.raw/.manifest.json`。
-4. 如果来源已摄取且 fingerprint 未变，提示是否跳过或强制重新摄取。
+4. 如果来源已摄取且 fingerprint 未变化，提示是否跳过或强制重新摄取。
 5. 创建或更新 source summary。
 6. 按需创建或更新 entity / concept 页面。
 7. 更新 `wiki/index.md`。
@@ -83,7 +85,7 @@ add this to the wiki
 
 ## `query` Semantics
 
-自然语言：
+自然语言示例：
 
 ```text
 what do you know about X?
@@ -94,7 +96,7 @@ based on the wiki, explain X
 目标 slash command：
 
 ```text
-/wiki query X
+/wiki query <question>
 ```
 
 行为：
@@ -103,37 +105,39 @@ based on the wiki, explain X
 2. 读取 `wiki/index.md`。
 3. 选择必要的相关页面。
 4. 综合回答，并引用 wiki 页面。
-5. 如果问题暴露知识缺口，明确说明是 gap。
+5. 如果问题暴露知识缺口，明确说明这是 gap。
 6. 如果回答有长期价值，建议保存到 `wiki/questions/`。
 
 ## `search` Semantics
 
 Search is read-only and returns ranked wiki pages before query synthesis.
 
-Natural-language examples:
+自然语言示例：
 
 ```text
+search wiki for X
+find wiki pages about X
 search wiki for durable knowledge
-find wiki pages about lexical retrieval
 ```
 
-Target slash command:
+目标 slash command：
 
 ```text
-/wiki search durable knowledge
+/wiki search <query>
 ```
 
-Behavior:
+行为：
 
-1. Read durable wiki pages only.
-2. Rank results with dependency-free BM25-style lexical retrieval.
-3. Return page paths, titles, snippets, matched terms, and scores.
-4. Keep `.raw/` out of the default search scope.
-5. Return ranked wiki pages before any later query synthesis step.
+1. 默认只读取 durable wiki pages。
+2. 使用 dependency-free BM25-style lexical retrieval 对结果排序。
+3. 返回 page paths、titles、snippets、matched terms 和 scores。
+4. 默认不搜索 `.raw/`。
+5. 返回 ranked wiki pages before query synthesis。
+6. `search` 自身不修改 wiki 内容。
 
 ## `lint` Semantics
 
-自然语言：
+自然语言示例：
 
 ```text
 lint the wiki
@@ -152,7 +156,7 @@ find wiki gaps
 1. 检查 frontmatter。
 2. 检查 wikilink 死链。
 3. 检查孤页。
-4. 检查 index 是否包含主要页面。
+4. 检查 index 是否覆盖主要页面。
 5. 检查 log 是否有最近操作。
 6. 检查 hot cache 是否过期或过长。
 7. 检查 manifest 是否可解析。
@@ -160,7 +164,7 @@ find wiki gaps
 
 ## `save` Semantics
 
-自然语言：
+自然语言示例：
 
 ```text
 save this conversation
@@ -176,7 +180,7 @@ save as "Topic"
 
 行为：
 
-1. 判断聊天内容是否有长期知识价值。
+1. 判断当前内容是否有长期知识价值。
 2. 选择保存为 question、concept、source note 或 session note。
 3. 创建或更新对应 wiki 页面。
 4. 更新 `wiki/index.md`。
@@ -185,7 +189,7 @@ save as "Topic"
 
 ## `detect-transport` Semantics
 
-自然语言：
+自然语言示例：
 
 ```text
 check wiki transport
@@ -216,21 +220,21 @@ MVP 不假设 Codex App 与 Codex CLI 的 slash command 能力完全一致。
 Codex adapter 负责：
 
 - 提供 `AGENTS.md` 模板。
-- 暴露技能或 plugin metadata。
+- 暴露 skills 或 plugin metadata。
 - 映射自然语言触发和 slash command。
-- 指导用户在 Codex App / CLI 中使用。
+- 指导用户在 Codex App / Codex CLI 中使用。
 - 调用 core operation。
 
 Core 不负责：
 
 - Codex UI 行为。
-- Codex App 与 CLI 的具体命令注册细节。
+- Codex App 与 Codex CLI 的具体命令注册细节。
 - Claude Code command 兼容层。
 
 ## 非目标
 
-- MVP 不实现 URL ingest 命令。
+- MVP 不实现 URL ingest command。
 - MVP 不实现 `/autoresearch`。
 - MVP 不实现 `/canvas`。
-- MVP 不实现 hybrid retrieval 命令。
-- MVP 不要求 slash command 是唯一入口。
+- MVP 不实现 hybrid retrieval command。
+- MVP 不要求 slash command 成为唯一入口。

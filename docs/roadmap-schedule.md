@@ -165,7 +165,7 @@ Non-scope:
 
 Follow-up:
 
-- Deep retrieval, hybrid retrieval, vector search, reranking, and LLM synthesis remains deferred.
+- Deep retrieval, hybrid retrieval, vector search, reranking, and LLM synthesis remain deferred.
 
 ## R4: Adapter Expansion
 
