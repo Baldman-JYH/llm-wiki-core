@@ -1,62 +1,65 @@
 # Codex Command Contract
 
-本文定义 Codex App / Codex CLI adapter 的命令语义。目标是让自然语言触发与 slash command 都能稳定映射到同一组 core operations。
+This document defines Codex App / Codex CLI adapter command semantics.
+Natural-language triggers and target slash commands should map to the same
+core operations.
 
-## 入口策略
+## Entry Strategy
 
-MVP 采用双层入口策略：
+MVP uses two entry layers:
 
-1. 自然语言触发必须可用。
-2. Slash command 是目标体验，用于对齐 Claude Code 使用 `claude-obsidian` 时的核心操作方式。
+1. Natural-language triggers must work.
+2. Slash commands are a target UX used to align the core workflow with the
+   Claude Code + Obsidian reference experience from
+   `AgriciDaniel/claude-obsidian`.
 
-如果 Codex App 与 Codex CLI 对 slash command 的支持存在差异，应优先保证自然语言触发加 skill 仍能完成等价核心工作。
+If Codex App and Codex CLI differ in slash-command support, natural language
+plus skills must still complete the equivalent core work.
 
-## 设计原则
+## Design Principles
 
-- 命令语义对齐 `claude-obsidian` 的核心体验。
-- 命令入口属于 Codex adapter，不属于 neutral core。
-- Core 只定义 operation contract，不关心用户通过什么 UI 触发。
-- 自然语言入口不能是二等路径，必须完整可用。
-- Slash command 是更直接的 UX 层，但不是唯一入口。
+- Command semantics align with the core `claude-obsidian` experience.
+- Command entry points belong to the Codex adapter, not the neutral core.
+- Core defines operation contracts; adapters map user triggers.
+- Natural-language entry is not a second-class path.
+- Slash commands are a convenient UX layer, not the only entry point.
 
 ## Command Mapping
 
-| 用户意图 | 自然语言触发示例 | 目标 slash command | Core operation |
+| User intent | Natural-language examples | Target slash command | Core operation |
 |---|---|---|---|
-| 初始化或继续 Wiki | `set up wiki`、`scaffold vault`、`continue wiki` | `/wiki` | `init` / `status` / `continue` |
-| 摄取本地来源 | `ingest .raw/articles/a.md`、`process this source` | `/wiki ingest <source>` | `ingest` |
-| 查询 Wiki | `what do you know about X`、`query: X` | `/wiki query <question>` | `query` |
-| 搜索 Wiki | `search wiki for X`、`find wiki pages about X` | `/wiki search <query>` | `search` |
-| 健康检查 | `lint the wiki`、`health check` | `/wiki lint` | `lint` |
-| 保存对话 | `save this conversation`、`file this insight` | `/wiki save [title]` | `save` |
-| 检测 transport | `check wiki transport` | `/wiki transport` | `detect-transport` |
+| Initialize or resume Wiki | `set up wiki`, `scaffold vault`, `continue wiki` | `/wiki` | `init` / `status` / `continue` |
+| Ingest local raw source | `ingest .raw/articles/a.md`, `process this source` | `/wiki ingest <source>` | `ingest` |
+| Query Wiki | `what do you know about X`, `query: X` | `/wiki query <question>` | `query` |
+| Search Wiki | `search wiki for X`, `find wiki pages about X` | `/wiki search <query>` | `search` |
+| Lint Wiki | `lint the wiki`, `health check` | `/wiki lint` | `lint` |
+| Save durable insight | `save this conversation`, `file this insight` | `/wiki save [title]` | `save` |
+| Detect transport | `check wiki transport` | `/wiki transport` | `detect-transport` |
 
 ## `/wiki` Semantics
 
-`/wiki` 是目标体验入口。
+When the vault is not initialized:
 
-当 vault 未初始化时：
+1. Check whether the current directory already contains `.raw/` and `wiki/`.
+2. Ask for the vault purpose.
+3. Use the generic mode scaffold to create the base structure.
+4. Create or update the project instruction file.
+5. Create `wiki/index.md`, `wiki/log.md`, `wiki/hot.md`, and `wiki/overview.md`.
+6. Create `.raw/.manifest.json`.
+7. Run `detect-transport`.
+8. Suggest the next action, such as adding a raw source and running `ingest`.
 
-1. 检查当前目录是否已经包含 `.raw/` 和 `wiki/`。
-2. 如未初始化，询问这个 vault 的用途。
-3. 使用 generic mode scaffold 创建基础结构。
-4. 创建或更新项目指引文件。
-5. 创建 `index.md`、`log.md`、`hot.md`、`overview.md`。
-6. 创建 `.raw/.manifest.json`。
-7. 运行 `detect-transport`。
-8. 给出下一步建议，例如先放入 raw source 再执行 `ingest`。
+When the vault is initialized:
 
-当 vault 已初始化时：
-
-1. 读取 `wiki/hot.md`。
-2. 读取 `wiki/index.md`。
-3. 检查最近的 `wiki/log.md` 记录。
-4. 报告当前状态。
-5. 建议继续 `ingest`、`search`、`query`、`lint` 或 `save`。
+1. Read `wiki/hot.md`.
+2. Read `wiki/index.md`.
+3. Check recent `wiki/log.md` entries.
+4. Report current status.
+5. Suggest the next action: `ingest`, `search`, `query`, `lint`, or `save`.
 
 ## `ingest` Semantics
 
-自然语言示例：
+Natural-language examples:
 
 ```text
 ingest .raw/articles/example.md
@@ -64,28 +67,26 @@ process this source
 add this to the wiki
 ```
 
-目标 slash command：
+Target slash command:
 
 ```text
 /wiki ingest .raw/articles/example.md
 ```
 
-行为：
+Behavior:
 
-1. 确认目标位于 `.raw/`。
-2. 读取 raw source，但不修改它。
-3. 检查 `.raw/.manifest.json`。
-4. 如果来源已摄取且 fingerprint 未变化，提示是否跳过或强制重新摄取。
-5. 创建或更新 source summary。
-6. 按需创建或更新 entity / concept 页面。
-7. 更新 `wiki/index.md`。
-8. 更新 `wiki/log.md`。
-9. 更新 `wiki/hot.md`。
-10. 更新 manifest。
+1. Confirm the target is under `.raw/`.
+2. Read the raw source but do not modify it.
+3. Check `.raw/.manifest.json`.
+4. If the source was already ingested and the fingerprint is unchanged, ask whether to skip or force re-ingest.
+5. Create or update the source summary.
+6. Create or update entity / concept pages as needed.
+7. Update `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
+8. Update manifest.
 
 ## `query` Semantics
 
-自然语言示例：
+Natural-language examples:
 
 ```text
 what do you know about X?
@@ -93,26 +94,27 @@ query: X
 based on the wiki, explain X
 ```
 
-目标 slash command：
+Target slash command:
 
 ```text
 /wiki query <question>
 ```
 
-行为：
+Behavior:
 
-1. 读取 `wiki/hot.md`。
-2. 读取 `wiki/index.md`。
-3. 选择必要的相关页面。
-4. 综合回答，并引用 wiki 页面。
-5. 如果问题暴露知识缺口，明确说明这是 gap。
-6. 如果回答有长期价值，建议保存到 `wiki/questions/`。
+1. Read `wiki/hot.md`.
+2. Read `wiki/index.md`.
+3. Select only the necessary relevant pages.
+4. Synthesize an answer from selected wiki pages.
+5. Cite wiki pages in the answer.
+6. If the question exposes a knowledge gap, explicitly call it a gap.
+7. If the answer has durable value, suggest saving it to `wiki/questions/`.
 
 ## `search` Semantics
 
 Search is read-only and returns ranked wiki pages before query synthesis.
 
-自然语言示例：
+Natural-language examples:
 
 ```text
 search wiki for X
@@ -120,24 +122,24 @@ find wiki pages about X
 search wiki for durable knowledge
 ```
 
-目标 slash command：
+Target slash command:
 
 ```text
 /wiki search <query>
 ```
 
-行为：
+Behavior:
 
-1. 默认只读取 durable wiki pages。
-2. 使用 dependency-free BM25-style lexical retrieval 对结果排序。
-3. 返回 page paths、titles、snippets、matched terms 和 scores。
-4. 默认不搜索 `.raw/`。
-5. 返回 ranked wiki pages before query synthesis。
-6. `search` 自身不修改 wiki 内容。
+1. Read durable wiki pages only.
+2. Rank results with dependency-free BM25-style lexical retrieval.
+3. Return page paths, titles, snippets, matched terms, and scores.
+4. Keep `.raw/` out of the default search scope.
+5. Return ranked wiki pages before query synthesis.
+6. Search does not mutate wiki content.
 
 ## `lint` Semantics
 
-自然语言示例：
+Natural-language examples:
 
 ```text
 lint the wiki
@@ -145,26 +147,26 @@ health check
 find wiki gaps
 ```
 
-目标 slash command：
+Target slash command:
 
 ```text
 /wiki lint
 ```
 
-行为：
+Behavior:
 
-1. 检查 frontmatter。
-2. 检查 wikilink 死链。
-3. 检查孤页。
-4. 检查 index 是否覆盖主要页面。
-5. 检查 log 是否有最近操作。
-6. 检查 hot cache 是否过期或过长。
-7. 检查 manifest 是否可解析。
-8. 输出或写入 lint report。
+1. Check frontmatter.
+2. Check dead wikilinks.
+3. Check orphan pages.
+4. Check index coverage for major pages.
+5. Check whether log has recent operations.
+6. Check whether hot cache is stale or too long.
+7. Check whether manifest is parseable.
+8. Output or write a lint report.
 
 ## `save` Semantics
 
-自然语言示例：
+Natural-language examples:
 
 ```text
 save this conversation
@@ -172,69 +174,67 @@ file this insight
 save as "Topic"
 ```
 
-目标 slash command：
+Target slash command:
 
 ```text
 /wiki save [title]
 ```
 
-行为：
+Behavior:
 
-1. 判断当前内容是否有长期知识价值。
-2. 选择保存为 question、concept、source note 或 session note。
-3. 创建或更新对应 wiki 页面。
-4. 更新 `wiki/index.md`。
-5. 更新 `wiki/log.md`。
-6. 更新 `wiki/hot.md`。
+1. Decide whether the current content has durable knowledge value.
+2. Choose whether to save as a question, concept, source note, or session note.
+3. Create or update the corresponding wiki page.
+4. Update `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
 
 ## `detect-transport` Semantics
 
-自然语言示例：
+Natural-language examples:
 
 ```text
 check wiki transport
 which transport is active?
 ```
 
-目标 slash command：
+Target slash command:
 
 ```text
 /wiki transport
 ```
 
-行为：
+Behavior:
 
-1. 检测 filesystem transport。
-2. 检测 Obsidian CLI transport。
-3. 写入 transport snapshot。
-4. 设置 preferred transport；Obsidian CLI 优先，filesystem 兜底。
-5. 报告当前可用 transport。
+1. Detect filesystem transport.
+2. Detect Obsidian CLI transport.
+3. Write a transport snapshot.
+4. Set preferred transport when verified; keep filesystem fallback available.
+5. Report the active available transport.
 
-## Codex App / CLI 差异
+## Codex App / CLI Differences
 
-MVP 不假设 Codex App 与 Codex CLI 的 slash command 能力完全一致。
-因此每个目标 slash command 都必须有自然语言等效触发。
+The MVP does not assume Codex App and Codex CLI have identical slash-command
+support. Every target slash command must have an equivalent natural-language
+trigger.
 
 ## Adapter Responsibilities
 
-Codex adapter 负责：
+Codex adapter is responsible for:
 
-- 提供 `AGENTS.md` 模板。
-- 暴露 skills 或 plugin metadata。
-- 映射自然语言触发和 slash command。
-- 指导用户在 Codex App / Codex CLI 中使用。
-- 调用 core operation。
+- Providing the `AGENTS.md` template.
+- Exposing skills or plugin metadata.
+- Mapping natural-language triggers and slash commands.
+- Guiding users in Codex App / Codex CLI.
+- Calling core operations.
 
-Core 不负责：
+Core is not responsible for:
 
-- Codex UI 行为。
-- Codex App 与 Codex CLI 的具体命令注册细节。
-- Claude Code command 兼容层。
+- Codex UI behavior.
+- Codex App / CLI command registration details.
+- Claude Code command compatibility.
 
-## 非目标
+## Non-Goals
 
-- MVP 不实现 URL ingest command。
-- MVP 不实现 `/autoresearch`。
-- MVP 不实现 `/canvas`。
-- MVP 不实现 hybrid retrieval command。
-- MVP 不要求 slash command 成为唯一入口。
+- This contract does not implement `/autoresearch`.
+- This contract does not implement `/canvas`.
+- This contract does not implement hybrid retrieval commands.
+- Slash command support is not the only entry path.

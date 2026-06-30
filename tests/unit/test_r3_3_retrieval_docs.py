@@ -53,41 +53,55 @@ def test_roadmap_marks_r3_3_complete_without_claiming_hybrid_retrieval() -> None
 def test_codex_command_contract_documents_search_mapping_and_semantics() -> None:
     text = _read("docs/codex-command-contract.md")
 
-    assert "Core operation" in text
-    assert "search wiki for X" in text
-    assert "/wiki search <query>" in text
+    assert "| User intent | Natural-language examples | Target slash command | Core operation |" in text
+    assert "| Search Wiki | `search wiki for X`, `find wiki pages about X` | `/wiki search <query>` | `search` |" in text
     assert "## `search` Semantics" in text
     assert "Search is read-only and returns ranked wiki pages before query synthesis." in text
-    assert "ranked wiki pages before query synthesis" in text
+    assert "Search does not mutate wiki content." in text
+    assert "Keep `.raw/` out of the default search scope." in text
 
 
 def test_codex_command_contract_documents_existing_core_command_semantics() -> None:
     text = _read("docs/codex-command-contract.md")
 
     assert "## `/wiki` Semantics" in text
-    assert "wiki/hot.md" in text
-    assert "wiki/index.md" in text
-    assert "detect-transport" in text
+    assert "When the vault is not initialized:" in text
+    assert "Ask for the vault purpose." in text
+    assert "Create `.raw/.manifest.json`." in text
+    assert "Run `detect-transport`." in text
+    assert "When the vault is initialized:" in text
+    assert "Read `wiki/hot.md`." in text
+    assert "Read `wiki/index.md`." in text
+    assert "Suggest the next action: `ingest`, `search`, `query`, `lint`, or `save`." in text
 
     assert "## `ingest` Semantics" in text
-    assert ".raw/" in text
-    assert ".raw/.manifest.json" in text
-    assert "wiki/log.md" in text
+    assert "Confirm the target is under `.raw/`." in text
+    assert "Read the raw source but do not modify it." in text
+    assert "Check `.raw/.manifest.json`." in text
+    assert "If the source was already ingested and the fingerprint is unchanged, ask whether to skip or force re-ingest." in text
+    assert "Update `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`." in text
 
     assert "## `query` Semantics" in text
-    assert "wiki/questions/" in text
+    assert "Read `wiki/hot.md`." in text
+    assert "Read `wiki/index.md`." in text
+    assert "Select only the necessary relevant pages." in text
+    assert "Cite wiki pages in the answer." in text
+    assert "If the answer has durable value, suggest saving it to `wiki/questions/`." in text
 
     assert "## `lint` Semantics" in text
-    assert "frontmatter" in text
-    assert "wikilink" in text
-    assert "lint report" in text
+    assert "Check frontmatter." in text
+    assert "Check dead wikilinks." in text
+    assert "Check orphan pages." in text
+    assert "Output or write a lint report." in text
 
     assert "## `save` Semantics" in text
-    assert "wiki/index.md" in text
-    assert "wiki/log.md" in text
-    assert "wiki/hot.md" in text
+    assert "Decide whether the current content has durable knowledge value." in text
+    assert "Choose whether to save as a question, concept, source note, or session note." in text
+    assert "Create or update the corresponding wiki page." in text
+    assert "Update `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`." in text
 
     assert "## `detect-transport` Semantics" in text
-    assert "filesystem transport" in text
-    assert "Obsidian CLI transport" in text
-    assert "transport snapshot" in text
+    assert "Detect filesystem transport." in text
+    assert "Detect Obsidian CLI transport." in text
+    assert "Write a transport snapshot." in text
+    assert "Report the active available transport." in text
