@@ -15,6 +15,7 @@ from llm_wiki_core.operations.ingest_url import ingest_url
 from llm_wiki_core.operations.init import init_vault
 from llm_wiki_core.operations.lint import lint_wiki
 from llm_wiki_core.operations.query import query_wiki
+from llm_wiki_core.operations.search import search_wiki
 from llm_wiki_core.operations.save import save_insight
 from llm_wiki_core.operations.status import status_wiki
 
@@ -72,6 +73,12 @@ def build_parser() -> argparse.ArgumentParser:
     query_parser.add_argument("question", help="Question to answer from the wiki.")
     query_parser.add_argument("--depth", default="standard", help="Query depth. MVP supports standard.")
     _add_json_option(query_parser)
+
+    search_parser = subparsers.add_parser("search", help="Search ranked local LLM Wiki pages.")
+    search_parser.add_argument("vault", help="Path to the vault root.")
+    search_parser.add_argument("query", help="Search query.")
+    search_parser.add_argument("--limit", type=int, default=5, help="Maximum ranked pages to return.")
+    _add_json_option(search_parser)
 
     save_parser = subparsers.add_parser("save", help="Save durable content into the wiki.")
     save_parser.add_argument("vault", help="Path to the vault root.")
@@ -136,6 +143,9 @@ def _execute(args: argparse.Namespace) -> object | None:
 
     if args.command == "query":
         return query_wiki(args.vault, args.question, depth=args.depth)
+
+    if args.command == "search":
+        return search_wiki(args.vault, args.query, limit=args.limit)
 
     if args.command == "save":
         return save_insight(
@@ -211,6 +221,17 @@ def _print_text_result(command: str, result: object) -> None:
             print("gaps:")
             for gap in result.gaps:
                 print(f"- {gap}")
+
+    if command == "search":
+        print(f"{result.operation} {result.status}")
+        print(f"query: {result.query}")
+        print(f"searched pages: {result.searched_pages}")
+        if result.results:
+            print("results:")
+            for page in result.results:
+                print(f"- {page.path} | score: {page.score:.6f} | [[{page.title}]]")
+                if page.snippet:
+                    print(f"  {page.snippet}")
 
     if command == "save":
         print(f"{result.operation} {result.status}")
