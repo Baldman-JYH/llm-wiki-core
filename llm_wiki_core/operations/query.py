@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from llm_wiki_core.operations.search import search_wiki
+from llm_wiki_core.retrieval.lexical import InvalidSearchQueryError
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
@@ -29,17 +30,13 @@ def query_wiki(
     _read_if_exists(active_transport, "wiki/hot.md")
     _read_if_exists(active_transport, "wiki/index.md")
 
-    search_result = search_wiki(root, question, limit=3, transport=active_transport)
+    try:
+        search_result = search_wiki(root, question, limit=3, transport=active_transport)
+    except InvalidSearchQueryError:
+        return _needs_sources_result(question)
+
     if not search_result.results:
-        return QueryResult(
-            operation="query",
-            status="needs_sources",
-            question=question,
-            answer=f"I don't have enough wiki coverage to answer: {question}",
-            cited_pages=[],
-            gaps=[f"No relevant wiki page found for: {question}"],
-            suggested_save=False,
-        )
+        return _needs_sources_result(question)
 
     top_pages = [page.path for page in search_result.results]
     citations = [_wikilink(page) for page in top_pages]
@@ -67,6 +64,18 @@ def _read_if_exists(transport: object, relative_path: str) -> str:
         return ""
     except KeyError:
         return ""
+
+
+def _needs_sources_result(question: str) -> QueryResult:
+    return QueryResult(
+        operation="query",
+        status="needs_sources",
+        question=question,
+        answer=f"I don't have enough wiki coverage to answer: {question}",
+        cited_pages=[],
+        gaps=[f"No relevant wiki page found for: {question}"],
+        suggested_save=False,
+    )
 
 
 def _wikilink(page: str) -> str:

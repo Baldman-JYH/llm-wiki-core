@@ -105,3 +105,11 @@ def test_codex_command_contract_documents_existing_core_command_semantics() -> N
     assert "Detect Obsidian CLI transport." in text
     assert "Write a transport snapshot." in text
     assert "Report the active available transport." in text
+
+
+def test_r3_3_plan_has_no_mojibake_templates() -> None:
+    text = _read("docs/superpowers/plans/2026-06-30-r3-3-retrieval-foundation.md")
+
+    mojibake_markers = ["\ufffd", "鈧", "锟", "鎼", "銆", "乣", "琛", "闃", "鐘", "鍒"]
+
+    assert not [marker for marker in mojibake_markers if marker in text]

@@ -42,6 +42,20 @@ def test_query_wiki_reports_gap_when_no_relevant_page_exists(tmp_path) -> None:
     assert result.gaps == ["No relevant wiki page found for: unrepresented topic"]
 
 
+def test_query_wiki_reports_gap_for_stopword_only_question(tmp_path) -> None:
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.query import query_wiki
+
+    init_vault(tmp_path, purpose="Stopword query test")
+
+    result = query_wiki(tmp_path, "what is the and")
+
+    assert result.operation == "query"
+    assert result.status == "needs_sources"
+    assert result.cited_pages == []
+    assert result.gaps == ["No relevant wiki page found for: what is the and"]
+
+
 def test_query_wiki_reads_pages_through_transport(tmp_path) -> None:
     from llm_wiki_core.operations.query import query_wiki
 

@@ -117,7 +117,8 @@ class _IndexedDocument:
 
     @classmethod
     def from_document(cls, document: SearchDocument) -> "_IndexedDocument":
-        terms = tokenize(document.text)
+        body = _strip_frontmatter(document.text)
+        terms = tokenize(body)
         return cls(
             path=document.path,
             title=document.title,

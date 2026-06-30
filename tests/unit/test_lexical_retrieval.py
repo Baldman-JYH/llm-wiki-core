@@ -90,6 +90,20 @@ def test_search_documents_snippet_strips_frontmatter_and_collapses_whitespace(te
     assert "type: concept" not in results[0].snippet
 
 
+def test_search_documents_does_not_match_frontmatter_only_terms() -> None:
+    from llm_wiki_core.retrieval.lexical import SearchDocument, search_documents
+
+    document = SearchDocument(
+        path="wiki/concepts/Status Only.md",
+        title="Status Only",
+        text="---\nstatus: active\ntype: concept\n---\n\n# Status Only\n\nBody discusses durable wiki notes.",
+    )
+
+    results = search_documents("active concept", [document], limit=5)
+
+    assert results == []
+
+
 def test_search_documents_rejects_empty_or_stopword_only_query() -> None:
     from llm_wiki_core.retrieval.lexical import InvalidSearchQueryError, SearchDocument, search_documents
 
