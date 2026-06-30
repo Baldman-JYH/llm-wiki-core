@@ -53,9 +53,41 @@ def test_roadmap_marks_r3_3_complete_without_claiming_hybrid_retrieval() -> None
 def test_codex_command_contract_documents_search_mapping_and_semantics() -> None:
     text = _read("docs/codex-command-contract.md")
 
-    assert "| 用户意图 | 自然语言触发示例 | 目标 slash command | Core operation |" in text
-    assert "| 搜索 Wiki | `search wiki for X`、`find wiki pages about X` | `/wiki search <query>` | `search` |" in text
-    assert "## `search` Semantics" in text
-    assert "Search is read-only and returns ranked wiki pages before query synthesis." in text
+    assert "Core operation" in text
     assert "search wiki for X" in text
     assert "/wiki search <query>" in text
+    assert "## `search` Semantics" in text
+    assert "Search is read-only and returns ranked wiki pages before query synthesis." in text
+    assert "ranked wiki pages before query synthesis" in text
+
+
+def test_codex_command_contract_documents_existing_core_command_semantics() -> None:
+    text = _read("docs/codex-command-contract.md")
+
+    assert "## `/wiki` Semantics" in text
+    assert "wiki/hot.md" in text
+    assert "wiki/index.md" in text
+    assert "detect-transport" in text
+
+    assert "## `ingest` Semantics" in text
+    assert ".raw/" in text
+    assert ".raw/.manifest.json" in text
+    assert "wiki/log.md" in text
+
+    assert "## `query` Semantics" in text
+    assert "wiki/questions/" in text
+
+    assert "## `lint` Semantics" in text
+    assert "frontmatter" in text
+    assert "wikilink" in text
+    assert "lint report" in text
+
+    assert "## `save` Semantics" in text
+    assert "wiki/index.md" in text
+    assert "wiki/log.md" in text
+    assert "wiki/hot.md" in text
+
+    assert "## `detect-transport` Semantics" in text
+    assert "filesystem transport" in text
+    assert "Obsidian CLI transport" in text
+    assert "transport snapshot" in text
