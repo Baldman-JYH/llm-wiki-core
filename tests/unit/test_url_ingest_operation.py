@@ -1,8 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
+from pathlib import Path
 
 import pytest
+
+
+def test_url_fetch_defaults_match_brief_plan_values() -> None:
+    from llm_wiki_core.operations.ingest_url import DEFAULT_TIMEOUT_SECONDS, MAX_RESPONSE_BYTES
+
+    assert DEFAULT_TIMEOUT_SECONDS == 10
+    assert MAX_RESPONSE_BYTES == 2_000_000
 
 
 def test_validate_http_url_accepts_http_and_https() -> None:
@@ -118,3 +127,136 @@ def test_source_markdown_contains_url_provenance_and_extracted_text() -> None:
     assert 'raw_snapshot_path: ".raw/url/2026-06-30/example-com/snapshot/response.html"' in markdown
     assert "## Extracted Text" in markdown
     assert "Useful body." in markdown
+
+
+def _fixed_now() -> datetime:
+    return datetime(2026, 6, 30, 1, 2, 3, tzinfo=timezone.utc)
+
+
+def test_ingest_url_creates_immutable_snapshot_and_manifest_record(tmp_path: Path) -> None:
+    from llm_wiki_core.operations.ingest_url import UrlFetchResponse, ingest_url
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="URL ingest")
+
+    def fetcher(url: str) -> UrlFetchResponse:
+        return UrlFetchResponse(
+            requested_url=url,
+            final_url=url,
+            status_code=200,
+            content_type="text/html; charset=utf-8",
+            body=b"<html><head><title>Ignored</title></head><body><h1>Hello Wiki</h1><p>Useful body.</p></body></html>",
+        )
+
+    result = ingest_url(
+        tmp_path,
+        "https://example.com/articles/hello",
+        fetcher=fetcher,
+        now=_fixed_now,
+    )
+
+    assert result.operation == "ingest-url"
+    assert result.status == "success"
+    assert result.url == "https://example.com/articles/hello"
+    assert result.snapshot_path.startswith(".raw/url/2026-06-30/example-com/20260630T010203")
+    assert result.source_path.endswith("/source.md")
+    assert result.raw_snapshot_path.endswith("/response.html")
+    assert (tmp_path / result.source_path).is_file()
+    assert (tmp_path / result.raw_snapshot_path).read_text(encoding="utf-8").startswith("<html>")
+
+    manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+    source_key = result.source_path.removeprefix(".raw/")
+    record = manifest["sources"][source_key]
+    assert record["source_type"] == "url"
+    assert record["source_url"] == "https://example.com/articles/hello"
+    assert record["http_status"] == 200
+    assert record["content_type"] == "text/html; charset=utf-8"
+    assert record["raw_snapshot_path"] == result.raw_snapshot_path
+    assert record["generated_pages"][0].startswith("wiki/sources/Example Com Hello 20260630T010203")
+
+
+def test_ingest_url_repeated_fetch_creates_new_snapshot(tmp_path: Path) -> None:
+    from llm_wiki_core.operations.ingest_url import UrlFetchResponse, ingest_url
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="URL immutable snapshots")
+
+    def fetcher(url: str) -> UrlFetchResponse:
+        return UrlFetchResponse(
+            requested_url=url,
+            final_url=url,
+            status_code=200,
+            content_type="text/plain; charset=utf-8",
+            body=b"same body",
+        )
+
+    first_time = datetime(2026, 6, 30, 1, 2, 3, tzinfo=timezone.utc)
+    second_time = datetime(2026, 6, 30, 1, 2, 4, tzinfo=timezone.utc)
+
+    first = ingest_url(tmp_path, "https://example.com/a", fetcher=fetcher, now=lambda: first_time)
+    second = ingest_url(tmp_path, "https://example.com/a", fetcher=fetcher, now=lambda: second_time)
+
+    assert first.snapshot_path != second.snapshot_path
+    assert (tmp_path / first.source_path).is_file()
+    assert (tmp_path / second.source_path).is_file()
+
+    manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+    assert first.source_path.removeprefix(".raw/") in manifest["sources"]
+    assert second.source_path.removeprefix(".raw/") in manifest["sources"]
+
+
+def test_ingest_url_rejects_empty_extracted_text_without_wiki_update(tmp_path: Path) -> None:
+    from llm_wiki_core.operations.ingest_url import UrlFetchResponse, ingest_url
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="URL empty text")
+
+    def fetcher(url: str) -> UrlFetchResponse:
+        return UrlFetchResponse(
+            requested_url=url,
+            final_url=url,
+            status_code=200,
+            content_type="text/html; charset=utf-8",
+            body=b"<html><script>alert(1)</script><style>.x{}</style></html>",
+        )
+
+    with pytest.raises(ValueError, match="URL response did not contain readable text"):
+        ingest_url(tmp_path, "https://example.com/empty", fetcher=fetcher, now=_fixed_now)
+
+    assert not list((tmp_path / "wiki" / "sources").glob("*.md"))
+    manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+    assert manifest["sources"] == {}
+
+
+def test_ingest_url_can_fetch_from_local_http_server(tmp_path: Path) -> None:
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from threading import Thread
+
+    from llm_wiki_core.operations.ingest_url import ingest_url
+    from llm_wiki_core.operations.init import init_vault
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:  # noqa: N802
+            body = b"<html><body><h1>Local Source</h1><p>Served locally.</p></body></html>"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format: str, *args: object) -> None:
+            return
+
+    init_vault(tmp_path, purpose="Local URL server")
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        url = f"http://127.0.0.1:{server.server_port}/source"
+        result = ingest_url(tmp_path, url, now=_fixed_now)
+    finally:
+        server.shutdown()
+        thread.join(timeout=5)
+
+    assert result.status == "success"
+    assert (tmp_path / result.source_path).read_text(encoding="utf-8").count("Served locally.") == 1
