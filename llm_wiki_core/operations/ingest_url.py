@@ -101,7 +101,7 @@ def _extract_readable_text(text: str, content_type: str) -> str:
 def _build_snapshot_paths(url: str, fetched_at: datetime, content_type: str) -> SnapshotPaths:
     parsed = urlparse(url)
     host_slug = _slug(parsed.hostname or "unknown-host")
-    timestamp = fetched_at.strftime("%Y%m%dT%H%M%S")
+    timestamp = fetched_at.strftime("%Y%m%dT%H%M%S%f")
     date = fetched_at.date().isoformat()
     url_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()[:12]
     snapshot_dir = f".raw/url/{date}/{host_slug}/{timestamp}-{url_hash}"

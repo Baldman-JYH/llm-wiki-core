@@ -73,6 +73,25 @@ def test_build_snapshot_paths_are_vault_relative_unique_and_textual() -> None:
     assert "\\" not in paths.snapshot_dir
 
 
+def test_build_snapshot_paths_differ_for_same_url_within_same_second() -> None:
+    from llm_wiki_core.operations.ingest_url import _build_snapshot_paths
+
+    first = _build_snapshot_paths(
+        "https://example.com/article",
+        datetime(2026, 6, 30, 1, 2, 3, 123456, tzinfo=timezone.utc),
+        "text/html; charset=utf-8",
+    )
+    second = _build_snapshot_paths(
+        "https://example.com/article",
+        datetime(2026, 6, 30, 1, 2, 3, 654321, tzinfo=timezone.utc),
+        "text/html; charset=utf-8",
+    )
+
+    assert first.snapshot_dir != second.snapshot_dir
+    assert first.snapshot_dir.startswith(".raw/url/2026-06-30/example-com/20260630T010203")
+    assert second.snapshot_dir.startswith(".raw/url/2026-06-30/example-com/20260630T010203")
+
+
 def test_source_markdown_contains_url_provenance_and_extracted_text() -> None:
     from llm_wiki_core.operations.ingest_url import UrlFetchResponse, _source_markdown
 
