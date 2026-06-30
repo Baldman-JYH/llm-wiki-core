@@ -18,3 +18,9 @@
 - 已运行 `python -m pytest tests/unit/test_ingest_operation.py -q`。
 - 结果：`12 passed`。
 - 当前任务实现可进入提交。
+
+## 阶段 4：安全标题修补
+
+- 已为 `source_title` 增加路径分隔符、`..` 和控制字符校验。
+- 已补充回归测试，确认危险标题会在写入 wiki 产物前拒绝。
+- 已再次运行 `python -m pytest tests/unit/test_ingest_operation.py -q`，结果为 `13 passed`。

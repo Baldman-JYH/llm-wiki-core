@@ -66,6 +66,33 @@ def test_ingest_source_accepts_source_type_title_and_manifest_metadata(tmp_path)
     assert record["generated_pages"] == ["wiki/sources/Example Article 20260630T010203 Abcd1234.md"]
 
 
+def test_ingest_source_rejects_unsafe_source_title(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest import ingest_source
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="Unsafe title ingest")
+    source = tmp_path / ".raw" / "articles" / "example.md"
+    source.parent.mkdir(parents=True)
+    source.write_text("Example source body.", encoding="utf-8")
+
+    unsafe_titles = ["../Escaped/Bad", "Bad\\Name"]
+
+    for unsafe_title in unsafe_titles:
+        try:
+            ingest_source(
+                tmp_path,
+                ".raw/articles/example.md",
+                source_title=unsafe_title,
+            )
+        except ValueError as error:
+            assert "source_title" in str(error)
+        else:
+            raise AssertionError("Expected ValueError")
+
+        dangerous_page = tmp_path / "wiki" / "sources" / f"{unsafe_title}.md"
+        assert not dangerous_page.exists()
+
+
 def test_ingest_source_default_file_behavior_stays_unchanged(tmp_path) -> None:
     from llm_wiki_core.operations.ingest import ingest_source
     from llm_wiki_core.operations.init import init_vault

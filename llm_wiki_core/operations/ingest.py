@@ -42,7 +42,7 @@ def ingest_source(
     fingerprint = _fingerprint(source_text)
     manifest = _load_manifest(active_transport)
     source_key = raw_path[len(".raw/") :]
-    title = source_title or _title_from_source_path(raw_relative)
+    title = _validate_source_title(source_title) if source_title is not None else _title_from_source_path(raw_relative)
     source_page_relative = Path("wiki") / "sources" / f"{title}.md"
     source_page_path = source_page_relative.as_posix()
 
@@ -131,6 +131,21 @@ def _fingerprint(text: str) -> str:
 
 def _title_from_source_path(source_path: Path) -> str:
     return source_path.stem.replace("-", " ").replace("_", " ").title()
+
+
+def _validate_source_title(source_title: str) -> str:
+    if not source_title:
+        raise ValueError("source_title must not be empty")
+
+    if any(ord(character) < 32 or ord(character) == 127 for character in source_title):
+        raise ValueError(f"source_title must not contain control characters: {source_title!r}")
+
+    normalized = source_title.replace("\\", "/")
+    parts = normalized.split("/")
+    if len(parts) != 1 or parts[0] in {"", ".", ".."}:
+        raise ValueError(f"source_title must be a single filename stem: {source_title!r}")
+
+    return source_title
 
 
 def _first_non_empty_line(text: str) -> str:
