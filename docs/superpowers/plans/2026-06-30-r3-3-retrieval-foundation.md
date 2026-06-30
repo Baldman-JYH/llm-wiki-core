@@ -769,6 +769,47 @@ Append to `tests/unit/test_query_save_operations.py`:
 
 ```python
 
+def test_query_delegates_candidate_selection_to_search_wiki(tmp_path, monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    import llm_wiki_core.operations.query as query_module
+
+    class SpyTransport:
+        def __init__(self) -> None:
+            self.read_paths: list[str] = []
+            self.files = {
+                "wiki/hot.md": "# Hot\n",
+                "wiki/index.md": "# Index\n",
+            }
+
+        def read_text(self, relative_path: str) -> str:
+            self.read_paths.append(relative_path)
+            return self.files[relative_path]
+
+    calls: list[tuple[object, str, int, object]] = []
+
+    def fake_search_wiki(vault_root, question: str, *, limit: int, transport: object):
+        calls.append((vault_root, question, limit, transport))
+        return SimpleNamespace(
+            results=[
+                SimpleNamespace(
+                    path="wiki/concepts/Search Delegation.md",
+                    title="Search Delegation",
+                    snippet="Delegated search result.",
+                )
+            ]
+        )
+
+    monkeypatch.setattr(query_module, "search_wiki", fake_search_wiki)
+    transport = SpyTransport()
+
+    result = query_module.query_wiki(tmp_path, "delegated search", transport=transport)
+
+    assert result.status == "success"
+    assert result.cited_pages == ["wiki/concepts/Search Delegation.md"]
+    assert calls == [(tmp_path, "delegated search", 3, transport)]
+    assert transport.read_paths == ["wiki/hot.md", "wiki/index.md"]
+
 def test_query_ignores_index_only_matches_when_selecting_cited_pages(tmp_path) -> None:
     from llm_wiki_core.operations.query import query_wiki
 
@@ -828,10 +869,10 @@ def test_query_uses_retrieval_foundation_for_ranked_pages(tmp_path) -> None:
 Run:
 
 ```powershell
-python -m pytest tests/unit/test_query_save_operations.py::test_query_ignores_index_only_matches_when_selecting_cited_pages tests/unit/test_query_save_operations.py::test_query_uses_retrieval_foundation_for_ranked_pages -q
+python -m pytest tests/unit/test_query_save_operations.py::test_query_delegates_candidate_selection_to_search_wiki -q
 ```
 
-Expected: the first test fails because current query ranking can consider index-like behavior only indirectly or the second test reveals old ranking behavior. If both pass because current behavior already matches these examples, continue and use the implementation step to remove duplicated ranking code; the full file still guards behavior.
+Expected: fail with `AttributeError` because current `llm_wiki_core.operations.query` does not expose `search_wiki`.
 
 - [ ] **Step 3: Replace local query ranking with `search_wiki`**
 
