@@ -173,9 +173,10 @@ def _snippet(text: str, matched_terms: Sequence[str], *, max_length: int = 180) 
 
 
 def _strip_frontmatter(text: str) -> str:
-    if not text.startswith("---\n"):
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    if not normalized.startswith("---\n"):
         return text
-    end = text.find("\n---\n", 4)
+    end = normalized.find("\n---\n", 4)
     if end == -1:
         return text
-    return text[end + len("\n---\n") :]
+    return normalized[end + len("\n---\n") :]

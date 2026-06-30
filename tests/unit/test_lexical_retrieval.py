@@ -68,18 +68,25 @@ def test_search_documents_tie_breaks_by_path() -> None:
     assert [result.path for result in results] == ["wiki/concepts/A.md", "wiki/sources/B.md"]
 
 
-def test_search_documents_snippet_strips_frontmatter_and_collapses_whitespace() -> None:
+@pytest.mark.parametrize(
+    "text",
+    [
+        "---\ntype: concept\n---\n\n# Hot Cache\n\nRecent    context for the agent.",
+        "---\r\ntype: concept\r\n---\r\n\r\n# Hot Cache\r\n\r\nRecent    context for the agent.",
+    ],
+)
+def test_search_documents_snippet_strips_frontmatter_and_collapses_whitespace(text: str) -> None:
     from llm_wiki_core.retrieval.lexical import SearchDocument, search_documents
 
     document = SearchDocument(
         path="wiki/concepts/Hot Cache.md",
         title="Hot Cache",
-        text="---\ntype: concept\n---\n\n# Hot Cache\n\nRecent    context for the agent.",
+        text=text,
     )
 
-    results = search_documents("recent context", [document], limit=1)
+    results = search_documents("type concept hot", [document], limit=1)
 
-    assert results[0].snippet == "Recent context for the agent."
+    assert results[0].snippet == "# Hot Cache"
     assert "type: concept" not in results[0].snippet
 
 
