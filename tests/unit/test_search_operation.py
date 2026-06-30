@@ -55,11 +55,13 @@ def test_search_wiki_returns_ranked_wiki_pages_without_mutation(tmp_path) -> Non
     ]
     assert result.results[0].title == "Durable Wiki"
     assert result.results[0].matched_terms == ["durable", "wiki", "knowledge"]
-    assert "durable wiki keeps durable Markdown knowledge" in result.results[0].snippet
+    assert result.results[0].snippet == "# Durable Wiki"
     assert ".raw/articles/source.md" not in transport.read_paths
     assert "wiki/index.md" not in transport.read_paths
     assert "wiki/hot.md" not in transport.read_paths
     assert "wiki/meta/Lint Report.md" not in transport.read_paths
+    assert transport.read_paths.count("wiki/sources/Karpathy LLM Wiki.md") == 1
+    assert transport.read_paths.count("wiki/concepts/Durable Wiki.md") == 1
     assert transport.write_attempted is False
 
 

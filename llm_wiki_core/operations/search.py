@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-import re
 
 from llm_wiki_core.retrieval.lexical import RankedPage, SearchDocument, search_documents
 from llm_wiki_core.transport.runtime import select_runtime_transport
@@ -43,7 +42,6 @@ def search_wiki(
     active_transport = transport or select_runtime_transport(root).transport
     documents = _read_search_documents(active_transport)
     results = search_documents(query, documents, limit=limit)
-    results = _refresh_snippets(active_transport, results)
     status = "success" if results else "no_results"
 
     return SearchWikiResult(
@@ -70,34 +68,3 @@ def _read_search_documents(transport: object) -> list[SearchDocument]:
                 )
             )
     return documents
-
-
-def _refresh_snippets(transport: object, pages: list[RankedPage]) -> list[RankedPage]:
-    refreshed: list[RankedPage] = []
-    for page in pages:
-        text = transport.read_text(page.path)  # type: ignore[attr-defined]
-        refreshed.append(
-            RankedPage(
-                path=page.path,
-                title=page.title,
-                score=page.score,
-                matched_terms=page.matched_terms,
-                snippet=_snippet_without_header(text, page.matched_terms),
-            )
-        )
-    return refreshed
-
-
-def _snippet_without_header(text: str, terms: list[str], *, max_length: int = 180) -> str:
-    lines = [line.strip() for line in text.replace("\r\n", "\n").replace("\r", "\n").splitlines() if line.strip()]
-    folded_terms = [term.casefold() for term in terms]
-    selected = lines[1] if len(lines) > 1 else (lines[0] if lines else "")
-    for line in lines[1:]:
-        folded_line = line.casefold()
-        if any(term in folded_line for term in folded_terms):
-            selected = line
-            break
-    collapsed = re.sub(r"\s+", " ", selected).strip()
-    if len(collapsed) <= max_length:
-        return collapsed
-    return collapsed[: max_length - 3].rstrip() + "..."
