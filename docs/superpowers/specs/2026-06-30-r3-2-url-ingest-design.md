@@ -38,7 +38,7 @@ R3.2 does not implement:
 - JavaScript rendering;
 - crawling more than the explicit URL;
 - authenticated pages, cookies, browser session reuse, or forms;
-- image, PDF, video, audio, or vision ingest;
+- image, PDF, video, audio, binary payload, or vision ingest;
 - deep retrieval, BM25, vector search, reranking, or LLM synthesis;
 - Obsidian CLI write support for URL acquisition.
 
@@ -56,6 +56,8 @@ The normalized Markdown source is the file passed into the existing ingest workf
 
 This approach is preferred over saving only a Markdown file because it better preserves source fidelity. It is preferred over full web-cleaning integration because R3.2 should keep the MVP small and cross-platform.
 
+Implementation must ensure URL snapshots do not all map to the same `wiki/sources/Source.md` page. It may do this either by giving the normalized Markdown file a unique snapshot-aware filename or by allowing the ingest workflow to receive a safe, unique title override derived from the URL title, fetch timestamp, and URL hash.
+
 ## Snapshot Layout
 
 The exact path may be refined during implementation, but the layout should preserve these semantics:
@@ -71,7 +73,7 @@ The exact path may be refined during implementation, but the layout should prese
           metadata.json
 ```
 
-For non-HTML text responses, the raw payload may use `response.txt`. For unknown textual content, use a conservative extension such as `response.bin` only if the MVP deliberately accepts that content type. The normalized source for ingest is always `source.md`.
+For non-HTML text responses, the raw payload may use `response.txt`. R3.2 accepts only textual responses that can be decoded deterministically. Binary or non-decodable responses are rejected instead of being archived through the text-only transport contract. The normalized source for ingest is always `source.md`.
 
 Snapshot paths are immutable. Re-ingesting the same URL creates a new snapshot unless implementation later adds an explicit dedupe mode. R3.2 must not overwrite an earlier URL snapshot.
 
@@ -185,6 +187,8 @@ The fetcher should use:
 
 R3.2 will not block private-network or loopback URLs because local HTTP server tests and explicit local documentation workflows should remain possible. This is acceptable for the MVP because `ingest-url` only fetches a user-supplied URL from a local CLI/App context, uses no credentials, and does not reuse browser sessions. The limitation must be documented.
 
+Because current runtime transports expose UTF-8 text read/write only, R3.2 preserves the raw response payload as decoded text, not as a byte-for-byte binary archive. This is sufficient for `text/html`, `text/plain`, and other accepted text content types. Byte-perfect archival can be added later if the transport contract gains binary methods.
+
 ## Data Flow
 
 1. User runs `llm-wiki ingest-url <vault> <url>`.
@@ -205,6 +209,7 @@ The operation should fail without partial Wiki updates when:
 - fetching times out;
 - the response exceeds the configured size limit;
 - the response content type is unsupported;
+- the response cannot be decoded as accepted text;
 - the snapshot cannot be written;
 - the normalized Markdown source cannot be created.
 
@@ -244,7 +249,7 @@ R3.2 is complete when:
 
 1. `llm-wiki ingest-url` can ingest one explicit local-test HTTP URL.
 2. Each run creates a new immutable raw snapshot.
-3. The original response payload is preserved.
+3. The original textual response payload is preserved as decoded raw text.
 4. A normalized Markdown source is generated under `.raw/url/`.
 5. Existing Wiki artifacts are updated through the ingest workflow.
 6. Manifest records URL provenance.
@@ -260,3 +265,5 @@ The implementation may either:
 2. refactor the ingest internals so file and URL sources share one manifest-writing helper.
 
 Option 2 is cleaner if it stays small. Option 1 is acceptable if it avoids broad churn and is covered by tests.
+
+Either implementation must preserve existing local file ingest behavior and must prevent URL snapshots from colliding on a generic `wiki/sources/Source.md` page.
