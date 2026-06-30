@@ -10,6 +10,7 @@ This document defines the stable public contract for core `llm-wiki-core` operat
 - `ingest`
 - `ingest-batch`
 - `ingest-url`
+- `search`
 - `query`
 - `lint`
 - `save`
@@ -212,6 +213,42 @@ Fetch one explicit `http` or `https` URL, preserve an immutable `.raw/url/` snap
 - URL manifest records use `source_type: "url"`
 - lint accepts `file` and `url`
 - full readability, defuddle, JavaScript rendering, authenticated pages, and crawling remain out of scope
+
+## `search`
+
+### Purpose
+
+Search ranked local wiki pages without mutating the vault.
+
+### Input
+
+| Field | Description |
+|---|---|
+| `vault_root` | Target vault root. |
+| `query` | Search query. |
+| `limit` | Maximum ranked pages to return. |
+
+### Output
+
+- ranked wiki pages
+- page paths and titles
+- snippets
+- matched terms
+- scores for ordering and debugging
+- searched roots and searched page count
+
+### Error Modes
+
+- empty query
+- query with no searchable terms
+- invalid non-positive limit
+- unreadable vault or page
+
+### Validation
+
+- read-only by default
+- searches durable wiki pages, not `.raw/`, unless a later explicit mode adds raw-source search
+- vector search, hybrid retrieval, reranking, and LLM synthesis are outside R3.3
 
 ## `query`
 
