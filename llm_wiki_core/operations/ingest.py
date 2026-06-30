@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 import hashlib
@@ -26,6 +27,9 @@ def ingest_source(
     source_path: str | Path,
     force: bool = False,
     transport: object | None = None,
+    source_type: str = "file",
+    source_title: str | None = None,
+    manifest_metadata: Mapping[str, object] | None = None,
 ) -> IngestResult:
     root = Path(vault_root)
     active_transport = transport or select_runtime_transport(root).transport
@@ -38,7 +42,7 @@ def ingest_source(
     fingerprint = _fingerprint(source_text)
     manifest = _load_manifest(active_transport)
     source_key = raw_path[len(".raw/") :]
-    title = _title_from_source_path(raw_relative)
+    title = source_title or _title_from_source_path(raw_relative)
     source_page_relative = Path("wiki") / "sources" / f"{title}.md"
     source_page_path = source_page_relative.as_posix()
 
@@ -67,9 +71,9 @@ def ingest_source(
     manifest["schema_version"] = 1
     manifest["updated"] = timestamp
     manifest.setdefault("sources", {})
-    manifest["sources"][source_key] = {
+    source_record: dict[str, object] = {
         "source_path": raw_path,
-        "source_type": "file",
+        "source_type": source_type,
         "status": "ingested",
         "first_ingested": existing_record.get("first_ingested") if existing_record else timestamp,
         "last_ingested": timestamp,
@@ -78,6 +82,9 @@ def ingest_source(
         "updated_pages": ["wiki/index.md", "wiki/log.md", "wiki/hot.md"],
         "notes": "",
     }
+    if manifest_metadata:
+        source_record.update(dict(manifest_metadata))
+    manifest["sources"][source_key] = source_record
     active_transport.write_text(".raw/.manifest.json", json.dumps(manifest, indent=2) + "\n")  # type: ignore[attr-defined]
     files_updated.append(".raw/.manifest.json")
 

@@ -28,6 +28,62 @@ def test_ingest_source_creates_source_page_and_updates_indexes(tmp_path) -> None
     assert "status: active" in hot
 
 
+def test_ingest_source_accepts_source_type_title_and_manifest_metadata(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest import ingest_source
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="URL metadata ingest")
+    source = tmp_path / ".raw" / "url" / "2026-06-30" / "example-com" / "snapshot" / "source.md"
+    source.parent.mkdir(parents=True)
+    source.write_text("# URL Source\n\nBody from a URL.", encoding="utf-8")
+
+    result = ingest_source(
+        tmp_path,
+        ".raw/url/2026-06-30/example-com/snapshot/source.md",
+        source_type="url",
+        source_title="Example Article 20260630T010203 Abcd1234",
+        manifest_metadata={
+            "source_url": "https://example.com/article",
+            "fetched_at": "2026-06-30T01:02:03+08:00",
+            "http_status": 200,
+            "content_type": "text/html; charset=utf-8",
+            "raw_snapshot_path": ".raw/url/2026-06-30/example-com/snapshot/response.html",
+        },
+    )
+
+    assert result.status == "success"
+    assert "wiki/sources/Example Article 20260630T010203 Abcd1234.md" in result.files_created
+    assert not (tmp_path / "wiki" / "sources" / "Source.md").exists()
+
+    manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+    record = manifest["sources"]["url/2026-06-30/example-com/snapshot/source.md"]
+    assert record["source_type"] == "url"
+    assert record["source_url"] == "https://example.com/article"
+    assert record["fetched_at"] == "2026-06-30T01:02:03+08:00"
+    assert record["http_status"] == 200
+    assert record["content_type"] == "text/html; charset=utf-8"
+    assert record["raw_snapshot_path"] == ".raw/url/2026-06-30/example-com/snapshot/response.html"
+    assert record["generated_pages"] == ["wiki/sources/Example Article 20260630T010203 Abcd1234.md"]
+
+
+def test_ingest_source_default_file_behavior_stays_unchanged(tmp_path) -> None:
+    from llm_wiki_core.operations.ingest import ingest_source
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="Default file ingest")
+    source = tmp_path / ".raw" / "articles" / "example.md"
+    source.parent.mkdir(parents=True)
+    source.write_text("Example source body.", encoding="utf-8")
+
+    result = ingest_source(tmp_path, ".raw/articles/example.md")
+
+    assert result.operation == "ingest"
+    assert result.status == "success"
+    assert (tmp_path / "wiki" / "sources" / "Example.md").is_file()
+    manifest = json.loads((tmp_path / ".raw" / ".manifest.json").read_text(encoding="utf-8"))
+    assert manifest["sources"]["articles/example.md"]["source_type"] == "file"
+
+
 def test_ingest_source_writes_manifest_record(tmp_path) -> None:
     from llm_wiki_core.operations.ingest import ingest_source
     from llm_wiki_core.operations.init import init_vault
