@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-import re
 
+from llm_wiki_core.operations.search import search_wiki
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
@@ -29,8 +29,8 @@ def query_wiki(
     _read_if_exists(active_transport, "wiki/hot.md")
     _read_if_exists(active_transport, "wiki/index.md")
 
-    candidates = _rank_pages(active_transport, question)
-    if not candidates:
+    search_result = search_wiki(root, question, limit=3, transport=active_transport)
+    if not search_result.results:
         return QueryResult(
             operation="query",
             status="needs_sources",
@@ -41,7 +41,7 @@ def query_wiki(
             suggested_save=False,
         )
 
-    top_pages = [page for _, page in candidates[:3]]
+    top_pages = [page.path for page in search_result.results]
     citations = [_wikilink(page) for page in top_pages]
     answer = (
         "Based on the current wiki, the most relevant page is "
@@ -67,34 +67,6 @@ def _read_if_exists(transport: object, relative_path: str) -> str:
         return ""
     except KeyError:
         return ""
-
-
-def _rank_pages(transport: object, question: str) -> list[tuple[int, str]]:
-    terms = _terms(question)
-    searchable_roots = [
-        "wiki/sources",
-        "wiki/concepts",
-        "wiki/entities",
-        "wiki/questions",
-        "wiki/comparisons",
-    ]
-    ranked: list[tuple[int, str]] = []
-
-    for root in searchable_roots:
-        for page in transport.list_markdown(root):  # type: ignore[attr-defined]
-            text = transport.read_text(page).lower()  # type: ignore[attr-defined]
-            score = sum(text.count(term) for term in terms)
-            if score > 0:
-                ranked.append((score, page))
-
-    ranked.sort(key=lambda item: (-item[0], item[1]))
-    return ranked
-
-
-def _terms(question: str) -> list[str]:
-    words = re.findall(r"[A-Za-z0-9]+", question.lower())
-    stopwords = {"a", "an", "and", "is", "of", "the", "to", "what"}
-    return [word for word in words if len(word) > 2 and word not in stopwords]
 
 
 def _wikilink(page: str) -> str:
