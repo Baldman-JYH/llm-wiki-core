@@ -125,7 +125,24 @@ Expected result:
 - per-source failures are reported without blocking unrelated sources;
 - raw files remain unchanged.
 
-URL ingest, HTML cleanup, image ingest, deep retrieval, vector search, and LLM synthesis remain outside R3.1.
+## URL Ingest
+
+R3.2 adds a narrow URL ingest path for one explicit HTTP or HTTPS URL at a time.
+
+```powershell
+llm-wiki ingest-url <vault> https://example.com/article
+```
+
+Expected snapshot contents under `.raw/url/`:
+
+- decoded raw response text saved as an immutable snapshot payload;
+- metadata describing the request/response provenance;
+- a normalized Markdown `source.md` file that existing ingest can process.
+
+R3.2 remains text-only. It does not include full readability, defuddle, JavaScript rendering, authenticated pages, or crawling. Binary or non-decodable responses are rejected before wiki pages are updated.
+
+HTML cleanup, image ingest, deep retrieval, vector search, and LLM synthesis remain outside R3.2.
+For the historical R3.1 boundary, URL ingest, HTML cleanup, image ingest, deep retrieval, vector search, and LLM synthesis were outside R3.1.
 
 ## Re-Enter Context
 
@@ -162,6 +179,7 @@ Every command supports optional `--json` output. Use this mode when Codex App, C
 llm-wiki status <vault> --json
 llm-wiki ingest <vault> .raw/articles/example.md --json
 llm-wiki ingest-batch <vault> .raw/articles --json
+llm-wiki ingest-url <vault> https://example.com/article --json
 llm-wiki lint <vault> --json
 ```
 
@@ -199,6 +217,7 @@ The adapter assets are repo-local. The MVP does not automatically install global
 - Filesystem transport read/write/search.
 - `init`, `detect-transport`, `ingest`, `query`, `save`, `status`, `continue`, and `lint`.
 - Local `.md` batch ingest under `.raw/`.
+- URL ingest with immutable `.raw/url/` snapshots.
 - Automated artifact-level equivalence verification for the core local loop.
 
 ## Current Boundaries
@@ -206,7 +225,8 @@ The adapter assets are repo-local. The MVP does not automatically install global
 - Official `obsidian` CLI read/write/append/list/search is used only after vault binding and capability verification; otherwise filesystem fallback remains active.
 - Full `claude-obsidian` parity is not claimed.
 - Claude Code plugin/hooks/subagent behavior is not implemented in neutral core.
-- URL ingest, HTML cleanup, image ingest, deep retrieval, vector search, LLM synthesis, and marketplace publishing are outside R3.1.
+- HTML cleanup, image ingest, deep retrieval, vector search, LLM synthesis, and marketplace publishing are outside R3.2.
+- R3.2 URL ingest is text-only and rejects binary or non-decodable responses.
 - Byte-for-byte equality of LLM-authored prose is intentionally not required for an LLM Wiki.
 
 ## Troubleshooting

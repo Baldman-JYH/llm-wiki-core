@@ -112,6 +112,35 @@ Follow-up:
 - URL ingest and retrieval expansion remain future R3 work.
 - Full `claude-obsidian` parity is not claimed in R3.1.
 
+### R3.2: URL Ingest
+
+Window: 2026-06-30
+
+Status: complete.
+
+Scope:
+
+- one explicit `http` or `https` URL per command
+- immutable `.raw/url/` snapshots
+- text-only decoded raw payload preservation
+- normalized Markdown source generation for reuse by `ingest`
+- manifest provenance for URL sources
+
+Non-scope:
+
+- Full readability
+- defuddle
+- JavaScript rendering
+- authenticated pages
+- crawling
+- deep retrieval
+- BM25, vector search, hybrid retrieval, reranking, or LLM synthesis
+
+Follow-up:
+
+- deeper HTML cleanup remains deferred
+- deep retrieval and search layers remain deferred to future R3 work
+
 ## R4: Adapter Expansion
 
 Window: 2026-08-08 to 2026-08-21

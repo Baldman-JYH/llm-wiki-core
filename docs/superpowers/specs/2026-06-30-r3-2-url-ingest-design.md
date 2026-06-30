@@ -257,6 +257,16 @@ R3.2 is complete when:
 8. Full tests pass on Windows without WSL or Git Bash.
 9. No required runtime dependency is added unless explicitly justified.
 
+## Task 5 Documentation Closure
+
+Task 5 extends the implementation contract so that:
+
+- lint accepts manifest `source_type` values of `file` and `url`;
+- unsupported manifest source types are blocker findings;
+- public docs explicitly describe immutable `.raw/url/` snapshots;
+- R3.2 is documented as text-only;
+- full readability, defuddle, JavaScript rendering, authenticated pages, and crawling remain deferred.
+
 ## Open Implementation Choice
 
 The implementation may either:

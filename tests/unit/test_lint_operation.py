@@ -172,3 +172,73 @@ def test_cli_lint_prints_summary_and_writes_report(tmp_path, capsys) -> None:
     assert "lint success" in output
     assert "blocker: 0" in output
     assert list((tmp_path / "wiki" / "meta").glob("lint-report-*.md"))
+
+
+def test_lint_accepts_file_and_url_manifest_source_types(tmp_path) -> None:
+    import json
+
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.lint import lint_wiki
+
+    init_vault(tmp_path, purpose="Lint URL manifest")
+    manifest_path = tmp_path / ".raw" / ".manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["sources"] = {
+        "articles/file.md": {
+            "source_path": ".raw/articles/file.md",
+            "source_type": "file",
+            "status": "ingested",
+            "content_fingerprint": "sha256:file",
+            "generated_pages": [],
+            "updated_pages": [],
+        },
+        "url/2026-06-30/example/snapshot/source.md": {
+            "source_path": ".raw/url/2026-06-30/example/snapshot/source.md",
+            "source_type": "url",
+            "status": "ingested",
+            "content_fingerprint": "sha256:url",
+            "source_url": "https://example.com/source",
+            "fetched_at": "2026-06-30T01:02:03+08:00",
+            "http_status": 200,
+            "content_type": "text/html; charset=utf-8",
+            "raw_snapshot_path": ".raw/url/2026-06-30/example/snapshot/response.html",
+            "generated_pages": [],
+            "updated_pages": [],
+        },
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = lint_wiki(tmp_path, write_report=False)
+
+    assert not [finding for finding in result.findings if finding.check == "manifest-source-type"]
+
+
+def test_lint_rejects_unsupported_manifest_source_type(tmp_path) -> None:
+    import json
+
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.lint import lint_wiki
+
+    init_vault(tmp_path, purpose="Lint invalid source type")
+    manifest_path = tmp_path / ".raw" / ".manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["sources"] = {
+        "remote/example.md": {
+            "source_path": ".raw/remote/example.md",
+            "source_type": "remote",
+            "status": "ingested",
+            "content_fingerprint": "sha256:remote",
+            "generated_pages": [],
+            "updated_pages": [],
+        }
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = lint_wiki(tmp_path, write_report=False)
+
+    assert any(
+        finding.check == "manifest-source-type"
+        and finding.severity == "blocker"
+        and "remote" in finding.message
+        for finding in result.findings
+    )

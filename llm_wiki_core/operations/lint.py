@@ -90,8 +90,45 @@ def _check_manifest(transport: object, findings: list[LintFinding]) -> None:
         return
     if manifest.get("schema_version") != 1:
         findings.append(LintFinding("blocker", "manifest-schema", ".raw/.manifest.json", "Manifest schema_version must be 1."))
-    if not isinstance(manifest.get("sources"), dict):
+    sources = manifest.get("sources")
+    if not isinstance(sources, dict):
         findings.append(LintFinding("blocker", "manifest-sources", ".raw/.manifest.json", "Manifest sources must be an object."))
+        return
+    _check_manifest_source_records(sources, findings)
+
+
+def _check_manifest_source_records(sources: dict[str, object], findings: list[LintFinding]) -> None:
+    for source_key, record in sources.items():
+        if not isinstance(record, dict):
+            findings.append(
+                LintFinding(
+                    "blocker",
+                    "manifest-source-record",
+                    ".raw/.manifest.json",
+                    f"Manifest source {source_key} must be an object.",
+                )
+            )
+            continue
+        source_type = record.get("source_type")
+        if source_type not in {"file", "url"}:
+            findings.append(
+                LintFinding(
+                    "blocker",
+                    "manifest-source-type",
+                    ".raw/.manifest.json",
+                    f"Manifest source {source_key} has unsupported source_type: {source_type}.",
+                )
+            )
+        source_path = record.get("source_path")
+        if not isinstance(source_path, str) or not source_path.startswith(".raw/"):
+            findings.append(
+                LintFinding(
+                    "blocker",
+                    "manifest-source-path",
+                    ".raw/.manifest.json",
+                    f"Manifest source {source_key} source_path must be under .raw/.",
+                )
+            )
 
 
 def _check_frontmatter(transport: object, pages: list[str], findings: list[LintFinding]) -> None:
