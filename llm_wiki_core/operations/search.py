@@ -39,10 +39,12 @@ def search_wiki(
         raise ValueError("limit must be a positive integer")
 
     root = Path(vault_root)
-    active_transport = transport or select_runtime_transport(root).transport
+    selection = None if transport is not None else select_runtime_transport(root)
+    active_transport = transport or selection.transport
     documents = _read_search_documents(active_transport)
     results = search_documents(query, documents, limit=limit)
     status = "success" if results else "no_results"
+    warnings = list(selection.warnings) if selection else []
 
     return SearchWikiResult(
         operation="search",
@@ -52,7 +54,7 @@ def search_wiki(
         results=results,
         searched_roots=list(SEARCH_ROOTS),
         searched_pages=len(documents),
-        warnings=[],
+        warnings=warnings,
     )
 
 

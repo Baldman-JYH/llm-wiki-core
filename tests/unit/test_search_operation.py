@@ -56,6 +56,13 @@ def test_search_wiki_returns_ranked_wiki_pages_without_mutation(tmp_path) -> Non
     assert result.results[0].title == "Durable Wiki"
     assert result.results[0].matched_terms == ["durable", "wiki", "knowledge"]
     assert result.results[0].snippet == "# Durable Wiki"
+    assert transport.list_roots == [
+        "wiki/sources",
+        "wiki/concepts",
+        "wiki/entities",
+        "wiki/questions",
+        "wiki/comparisons",
+    ]
     assert ".raw/articles/source.md" not in transport.read_paths
     assert "wiki/index.md" not in transport.read_paths
     assert "wiki/hot.md" not in transport.read_paths
@@ -87,3 +94,21 @@ def test_search_wiki_rejects_stopword_only_query(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="search query has no searchable terms"):
         search_wiki(tmp_path, "what is the and", transport=SpyTransport())
+
+
+def test_search_wiki_default_transport_propagates_selection_warnings(tmp_path, monkeypatch) -> None:
+    from llm_wiki_core.operations import search as search_module
+    from llm_wiki_core.operations.search import search_wiki
+
+    selected_transport = SpyTransport()
+
+    class Selection:
+        def __init__(self) -> None:
+            self.transport = selected_transport
+            self.warnings = ["fallback warning"]
+
+    monkeypatch.setattr(search_module, "select_runtime_transport", lambda _root: Selection())
+
+    result = search_wiki(tmp_path, "durable wiki")
+
+    assert result.warnings == ["fallback warning"]
