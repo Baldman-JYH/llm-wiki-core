@@ -129,6 +129,16 @@ def _check_manifest_source_records(sources: dict[str, object], findings: list[Li
                     f"Manifest source {source_key} source_path must be under .raw/.",
                 )
             )
+        content_fingerprint = record.get("content_fingerprint")
+        if not isinstance(content_fingerprint, str) or not content_fingerprint.strip():
+            findings.append(
+                LintFinding(
+                    "blocker",
+                    "manifest-content-fingerprint",
+                    ".raw/.manifest.json",
+                    f"Manifest source {source_key} content_fingerprint must be a non-empty string.",
+                )
+            )
 
 
 def _check_frontmatter(transport: object, pages: list[str], findings: list[LintFinding]) -> None:

@@ -59,3 +59,18 @@ def test_roadmap_records_r3_2_url_ingest_status() -> None:
     assert "- JavaScript rendering" in schedule
     assert "Follow-up:" in schedule
     assert "remains deferred" in schedule
+
+
+def test_r3_2_docs_do_not_include_local_absolute_paths() -> None:
+    checked_files = [
+        "docs/superpowers/plans/2026-06-30-r3-2-url-ingest.md",
+        "docs/superpowers/specs/2026-06-30-r3-2-url-ingest-design.md",
+        "README.md",
+        "docs/user-guide.md",
+        "docs/manifest-schema.md",
+    ]
+
+    for relative in checked_files:
+        text = _read(relative)
+        assert "D:\\ai" not in text
+        assert "D:/ai" not in text

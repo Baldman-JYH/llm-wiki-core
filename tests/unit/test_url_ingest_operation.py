@@ -174,6 +174,12 @@ def test_ingest_url_creates_immutable_snapshot_and_manifest_record(tmp_path: Pat
     assert record["raw_snapshot_path"] == result.raw_snapshot_path
     assert record["generated_pages"][0].startswith("wiki/sources/Example Com Hello 20260630T010203")
 
+    source_page_path = tmp_path / record["generated_pages"][0]
+    source_page = source_page_path.read_text(encoding="utf-8")
+    summary_section = source_page.split("## Summary\n", 1)[1].split("\n## Source Notes", 1)[0].strip()
+    assert "Hello Wiki" in summary_section or "Useful body." in summary_section
+    assert "---" not in summary_section
+
 
 def test_ingest_url_repeated_fetch_creates_new_snapshot(tmp_path: Path) -> None:
     from llm_wiki_core.operations.ingest_url import UrlFetchResponse, ingest_url

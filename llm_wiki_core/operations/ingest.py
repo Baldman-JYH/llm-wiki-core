@@ -29,6 +29,7 @@ def ingest_source(
     transport: object | None = None,
     source_type: str = "file",
     source_title: str | None = None,
+    source_summary: str | None = None,
     manifest_metadata: Mapping[str, object] | None = None,
 ) -> IngestResult:
     root = Path(vault_root)
@@ -61,7 +62,7 @@ def ingest_source(
     files_created: list[str] = []
     files_updated: list[str] = []
 
-    source_page_content = _source_page(title, raw_path, fingerprint, source_text, date, timestamp)
+    source_page_content = _source_page(title, raw_path, fingerprint, source_text, date, timestamp, source_summary)
     _write_text(active_transport, source_page_path, source_page_content, files_created, files_updated)
 
     _update_index(active_transport, title, raw_path, files_updated)
@@ -156,8 +157,16 @@ def _first_non_empty_line(text: str) -> str:
     return "No non-empty content found."
 
 
-def _source_page(title: str, source_path: str, fingerprint: str, source_text: str, date: str, timestamp: str) -> str:
-    summary = _first_non_empty_line(source_text)
+def _source_page(
+    title: str,
+    source_path: str,
+    fingerprint: str,
+    source_text: str,
+    date: str,
+    timestamp: str,
+    source_summary: str | None = None,
+) -> str:
+    summary = (source_summary or "").strip() or _first_non_empty_line(source_text)
     return (
         "---\n"
         "type: source\n"

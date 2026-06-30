@@ -256,6 +256,7 @@ def ingest_url(
         transport=active_transport,
         source_type="url",
         source_title=_source_page_title(response, fetched_at),
+        source_summary=readable_text,
         manifest_metadata={
             "source_url": response.final_url,
             "requested_url": response.requested_url,

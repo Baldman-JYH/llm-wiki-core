@@ -242,3 +242,38 @@ def test_lint_rejects_unsupported_manifest_source_type(tmp_path) -> None:
         and "remote" in finding.message
         for finding in result.findings
     )
+
+
+def test_lint_rejects_missing_or_empty_manifest_content_fingerprint(tmp_path) -> None:
+    import json
+
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.lint import lint_wiki
+
+    init_vault(tmp_path, purpose="Lint missing fingerprint")
+    manifest_path = tmp_path / ".raw" / ".manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["sources"] = {
+        "articles/missing.md": {
+            "source_path": ".raw/articles/missing.md",
+            "source_type": "file",
+            "status": "ingested",
+            "generated_pages": [],
+            "updated_pages": [],
+        },
+        "articles/empty.md": {
+            "source_path": ".raw/articles/empty.md",
+            "source_type": "file",
+            "status": "ingested",
+            "content_fingerprint": "",
+            "generated_pages": [],
+            "updated_pages": [],
+        },
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = lint_wiki(tmp_path, write_report=False)
+
+    findings = [finding for finding in result.findings if finding.check == "manifest-content-fingerprint"]
+    assert len(findings) == 2
+    assert all(finding.severity == "blocker" for finding in findings)
