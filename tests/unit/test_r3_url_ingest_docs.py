@@ -15,8 +15,9 @@ def test_readme_documents_url_ingest_and_boundaries() -> None:
 
     assert "ingest-url" in readme
     assert "llm-wiki ingest-url <vault> https://example.com/article" in readme
-    assert "immutable" in readme
-    assert "text-only" in readme
+    assert "immutable `.raw/url/` snapshots" in readme
+    assert "R3.2 is text-only." in readme
+    assert "does not include full readability, defuddle, JavaScript rendering, authenticated pages, or crawling." in readme
     assert "Karpathy" in readme
     assert "AgriciDaniel/claude-obsidian" in readme
 
@@ -26,9 +27,9 @@ def test_user_guide_documents_url_ingest_usage() -> None:
 
     assert "llm-wiki ingest-url <vault> https://example.com/article" in guide
     assert ".raw/url/" in guide
-    assert "text-only" in guide
-    assert "JavaScript rendering" in guide
-    assert "defuddle" in guide
+    assert "R3.2 remains text-only." in guide
+    assert "It does not include full readability, defuddle, JavaScript rendering, authenticated pages, or crawling." in guide
+    assert "remain outside R3.2" in guide
 
 
 def test_operation_and_manifest_contracts_document_url_sources() -> None:
@@ -36,9 +37,13 @@ def test_operation_and_manifest_contracts_document_url_sources() -> None:
     manifest_schema = _read("docs/manifest-schema.md")
 
     assert "`ingest-url`" in operation_contract
+    assert "`ingest-batch`" in operation_contract
+    assert "per-source success, skipped, and failed items" in operation_contract
+    assert "only local Markdown roots under `.raw/`" in operation_contract
     assert "source_type" in manifest_schema
     assert "`url`" in manifest_schema
     assert "source_url" in manifest_schema
+    assert "requested_url" in manifest_schema
     assert "raw_snapshot_path" in manifest_schema
 
 
@@ -46,6 +51,11 @@ def test_roadmap_records_r3_2_url_ingest_status() -> None:
     schedule = _read("docs/roadmap-schedule.md")
 
     assert "R3.2: URL Ingest" in schedule
-    assert "immutable" in schedule
-    assert "text-only" in schedule
-    assert "Full readability" in schedule
+    assert "immutable `.raw/url/` snapshots" in schedule
+    assert "text-only decoded raw payload preservation" in schedule
+    assert "Non-scope:" in schedule
+    assert "- Full readability" in schedule
+    assert "- defuddle" in schedule
+    assert "- JavaScript rendering" in schedule
+    assert "Follow-up:" in schedule
+    assert "remains deferred" in schedule

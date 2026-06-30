@@ -8,6 +8,7 @@ This document defines the stable public contract for core `llm-wiki-core` operat
 - `status`
 - `continue`
 - `ingest`
+- `ingest-batch`
 - `ingest-url`
 - `query`
 - `lint`
@@ -137,6 +138,41 @@ Ingest one local Markdown source that already lives under `.raw/`.
 
 - raw input remains unchanged
 - manifest source record is valid
+
+## `ingest-batch`
+
+### Purpose
+
+Ingest a local Markdown source root under `.raw/` by delegating each discovered source to the existing single-source `ingest` workflow.
+
+### Input
+
+| Field | Description |
+|---|---|
+| `vault_root` | Target vault root. |
+| `source_root` | Vault-relative root under `.raw/` that contains local Markdown `.md` files. |
+| `force` | Re-ingest unchanged sources instead of reporting them as skipped. |
+| `json` | Optional machine-readable result output for CLI callers. |
+
+### Output
+
+- per-source success, skipped, and failed items
+- aggregated created and updated wiki artifacts
+- manifest updates through delegated `ingest` runs
+- a stable result shape that can also be returned through `--json`
+
+### Error Modes
+
+- reject roots outside `.raw/`
+- reject non-Markdown or missing source roots
+- report per-source failures without blocking unrelated sources
+
+### Validation
+
+- only local Markdown roots under `.raw/` are accepted
+- each discovered source delegates to `ingest`
+- raw files remain unchanged
+- URL ingest, HTML cleanup, vector search, and LLM synthesis are not part of `ingest-batch`
 
 ## `ingest-url`
 
