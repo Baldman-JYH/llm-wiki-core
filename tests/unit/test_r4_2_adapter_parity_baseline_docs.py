@@ -74,9 +74,9 @@ def test_adapter_parity_baseline_defers_advanced_claude_obsidian_features() -> N
     forbidden_claims = [
         "full claude-obsidian parity is complete",
         "byte-for-byte parity is required",
-        "Claude hooks are neutral core",
-        "Claude subagents are neutral core",
-        "marketplace-grade Codex plugin is complete",
+        "claude hooks are neutral core",
+        "claude subagents are neutral core",
+        "marketplace-grade codex plugin is complete",
     ]
     lower_text = text.lower()
     for claim in forbidden_claims:

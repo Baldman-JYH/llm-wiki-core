@@ -254,4 +254,3 @@ R4.2 is complete when:
 - focused R4.2 doc tests pass;
 - the full test suite passes;
 - `git diff --check` passes.
-

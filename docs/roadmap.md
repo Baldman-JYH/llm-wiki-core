@@ -53,7 +53,6 @@ Artifact-level Codex / Claude parity is the target; byte-for-byte LLM prose pari
 Remaining adapter work:
 
 - Optional marketplace-grade Codex plugin packaging.
-- Claude adapter reconstruction remains future adapter work.
 - Claude adapter reconstruction remains future adapter implementation work.
 - Claude Code commands, hooks, and subagents remain adapter-only behavior.
 
