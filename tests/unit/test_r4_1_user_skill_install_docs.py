@@ -85,5 +85,6 @@ def test_r4_1_roadmap_and_packaging_plan_boundaries() -> None:
     assert "R4.1 does not publish a marketplace-grade Codex plugin." in packaging
     assert "R4.1 does not edit global Codex configuration automatically." in packaging
     assert "### R4.1: Codex User-Level Skill Installation" in schedule
-    assert "Status: planned." in schedule
+    assert "Status: complete." in schedule
+    assert "Release: `v0.4.0-mvp`." in schedule
     assert "Explicit `-InstallUserSkill` and `--install-user-skill` paths." in schedule

@@ -171,7 +171,7 @@ Follow-up:
 
 Window: 2026-08-08 to 2026-08-21
 
-Status: R4.0 complete; remaining R4.x adapter work deferred.
+Status: R4.1 complete; remaining R4.x adapter work deferred.
 
 Scope:
 
@@ -215,7 +215,9 @@ Exit criteria:
 
 Window: 2026-07-02
 
-Status: planned.
+Status: complete.
+
+Release: `v0.4.0-mvp`.
 
 Scope:
 
@@ -223,6 +225,13 @@ Scope:
 - Guard tests for installer-facing README and roadmap/package-boundary docs.
 - Default user skill destination documentation for `$HOME/.agents/skills/llm-wiki`.
 - Clear guidance that repo-local install remains available.
+
+Completed outcome:
+
+- Added explicit PowerShell and POSIX user-level skill install paths.
+- Added dry-run output, destination override support, and conservative replace behavior.
+- Added replace safety guards before destructive directory removal.
+- Documented that global Codex configuration is not edited automatically.
 
 Non-scope:
 

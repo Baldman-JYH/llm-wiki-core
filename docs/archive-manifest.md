@@ -9,6 +9,14 @@ Date: 2026-06-26
 - Archive method: `git archive`
 - Checksum: SHA256 stored beside the generated archive.
 
+## Current Release Archive
+
+- Release: `v0.4.0-mvp`
+- Archive name: `llm-wiki-core-v0.4.0-mvp.zip`
+- Archive method: `git archive`
+- Checksum: SHA256 stored beside the generated archive.
+- Artifact location: outside the repository working tree, for example `<release-artifacts>/llm-wiki-core-v0.4.0-mvp.zip`.
+
 ## Archive Policy
 
 The release archive is generated from the local Git tag:

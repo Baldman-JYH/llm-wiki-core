@@ -2,8 +2,8 @@
 
 `llm-wiki-core` is a neutral local LLM Wiki practice implementation. The canonical abstraction is [Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): raw materials stay durable, and the agent maintains a Markdown wiki instead of leaving knowledge trapped in chat. [AgriciDaniel/claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) is the reference implementation for the Claude Code + Obsidian workflow, while `llm-wiki-core` focuses on a neutral, testable core that does not claim full parity with `claude-obsidian`.
 
-Current release: `v0.3.1-mvp`.
-Current status: R4.0 publishes Codex adapter packaging readiness on top of the R3.3 retrieval foundation.
+Current release: `v0.4.0-mvp`.
+Current status: R4.1 publishes explicit Codex user-level skill installation on top of R4.0 adapter packaging readiness.
 
 ## Project Positioning
 
@@ -115,7 +115,7 @@ llm-wiki search <vault> "durable wiki knowledge" --limit 5 --json
 
 ## Codex Adapter
 
-The Codex adapter assets live under `integrations/codex/`. Repo-local install scripts initialize a vault and print re-entry commands. User-level skill packaging is documented as a reusable readiness path.
+The Codex adapter assets live under `integrations/codex/`. Repo-local install scripts initialize a vault and print re-entry commands. Codex user-level skill installation is explicit and does not edit global Codex configuration automatically.
 
 Codex entry points must call the neutral core commands instead of redefining LLM Wiki behavior. Natural-language triggers are required; slash commands are a target UX layer.
 
@@ -126,6 +126,7 @@ Codex entry points must call the neutral core commands instead of redefining LLM
 - R3.3 search is read-only and searches durable Markdown wiki pages by default.
 - R3.3 uses dependency-free BM25-style lexical retrieval.
 - R3.3 remains text-first on top of the R3.2 URL ingest foundation.
+- R4.1 Codex user-level skill installation is opt-in through explicit installer flags.
 - Vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred.
 - Full readability, defuddle, JavaScript rendering, authenticated pages, and crawling remain deferred.
 - Binary or non-decodable responses are rejected instead of being archived through the text transport.
@@ -140,6 +141,7 @@ Codex entry points must call the neutral core commands instead of redefining LLM
 - [Roadmap schedule](docs/roadmap-schedule.md)
 - [Release readiness checklist](docs/release-readiness-checklist.md)
 - [v0.1.0 MVP release notes](docs/release-notes-v0.1.0-mvp.md)
+- [v0.4.0 MVP release notes](docs/release-notes-v0.4.0-mvp.md)
 - [Archive manifest](docs/archive-manifest.md)
 
 ## Roadmap
@@ -148,6 +150,7 @@ Codex entry points must call the neutral core commands instead of redefining LLM
 - R2: verified optional runtime transport for the official `obsidian` CLI.
 - R3: ingest and retrieval expansion, including local Markdown batch ingest, URL ingest, and local wiki search.
 - R4.0: Codex adapter packaging readiness.
+- R4.1: explicit Codex user-level skill installation.
 - R4.x: remaining adapter expansion, including Claude adapter reconstruction and future plugin packaging.
 - R5: knowledge-organization extensions.
 

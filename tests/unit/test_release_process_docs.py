@@ -65,5 +65,24 @@ def test_readme_links_release_process_docs() -> None:
     readme = _read("README.md")
 
     assert "docs/release-notes-v0.1.0-mvp.md" in readme
+    assert "docs/release-notes-v0.4.0-mvp.md" in readme
     assert "docs/archive-manifest.md" in readme
     assert "docs/roadmap-schedule.md" in readme
+
+
+def test_r4_1_release_notes_capture_user_skill_install_boundary() -> None:
+    notes = _read("docs/release-notes-v0.4.0-mvp.md")
+
+    required_terms = [
+        "v0.4.0-mvp",
+        "R4.1 Codex User-Level Skill Installation",
+        "-InstallUserSkill",
+        "--install-user-skill",
+        "$HOME/.agents/skills/llm-wiki",
+        "does not edit global Codex configuration automatically",
+        "marketplace-grade Codex plugin publication remains deferred",
+        "Claude adapter reconstruction remains deferred",
+        "220 passed, 6 skipped",
+    ]
+    for term in required_terms:
+        assert term in notes
