@@ -20,6 +20,19 @@ CLAUDE_PUBLIC_DOCS = [
     "integrations/claude/commands/save.md",
 ]
 
+DAMAGED_TEXT_SENTINELS = (
+    "\ufffd",
+    "闂?,",
+    "濞?,",
+    "闁?,",
+    "闂?,",
+    "婵°倗濮撮惌渚€鎯?",
+)
+
+
+def _find_damaged_markers(text: str) -> list[str]:
+    return [marker for marker in DAMAGED_TEXT_SENTINELS if marker in text]
+
 
 def test_r4_3_claude_assets_exist_and_are_project_local() -> None:
     expected = [
@@ -81,7 +94,7 @@ def test_claude_command_wrappers_are_thin() -> None:
     assert "Map `/wiki` intent to neutral `llm-wiki` commands" in wiki
     assert "Do not implement hooks, subagents, or Obsidian-specific automation." in wiki
     assert "Read the project-local `llm-wiki` skill" in save
-    assert 'Map `/save` intent to `llm-wiki save <vault> --title"' in save
+    assert 'Map `/save` intent to `llm-wiki save <vault> --title "..." --content "..."`.' in save
     assert "Do not save chat noise." in save
 
 
@@ -129,11 +142,10 @@ def test_r4_3_claude_assets_do_not_ship_active_hooks_subagents_or_plugin() -> No
 
 
 def test_r4_3_public_docs_have_no_private_paths_or_damaged_text() -> None:
-    damaged = ["\ufffd", "闂?,", "濞?,", "闁?,", "闂?,", "婵°倗濮撮惌渚€鎯?"]
     private_path_patterns = [r"\b[A-Z]:[\\/]", "D:" + "/", "D:" + "\\\\", "C:" + "/", "C:" + "\\\\"]
 
     for relative in CLAUDE_PUBLIC_DOCS:
         text = _read(relative)
-        assert not [marker for marker in damaged if marker in text], relative
+        assert not _find_damaged_markers(text), relative
         for pattern in private_path_patterns:
             assert not re.search(pattern, text), f"{relative} contains {pattern}"
