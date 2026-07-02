@@ -36,6 +36,16 @@ def test_shell_installer_has_dry_run_plan_and_reentry_hints() -> None:
     assert "llm-wiki continue" in text
 
 
+def test_install_readme_uses_portable_examples_not_private_paths() -> None:
+    text = (_repo_root() / "integrations" / "codex" / "install" / "README.md").read_text(encoding="utf-8")
+
+    assert "<vault>" in text
+    assert "D:\\path\\to\\vault" not in text
+    assert "/path/to/vault" not in text
+    assert "WSL" not in text
+    assert "Git Bash" not in text
+
+
 def test_powershell_installer_dry_run_does_not_create_vault(tmp_path) -> None:
     shell = shutil.which("pwsh") or shutil.which("powershell")
     if shell is None:

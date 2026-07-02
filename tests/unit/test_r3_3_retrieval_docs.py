@@ -56,7 +56,7 @@ def test_codex_command_contract_documents_search_mapping_and_semantics() -> None
     assert "| User intent | Natural-language examples | Target slash command | Core operation |" in text
     assert "| Search Wiki | `search wiki for X`, `find wiki pages about X` | `/wiki search <query>` | `search` |" in text
     assert "## `search` Semantics" in text
-    assert "Search is read-only and returns ranked wiki pages before query synthesis." in text
+    assert "Search is read-only and returns ranked durable wiki pages before query synthesis." in text
     assert "Search does not mutate wiki content." in text
     assert "Keep `.raw/` out of the default search scope." in text
 

@@ -29,7 +29,7 @@ def test_readme_documents_machine_readable_cli_output() -> None:
     readme = _read("README.md")
 
     assert "--json" in readme
-    assert "机器可读 JSON" in readme
+    assert "machine-readable JSON" in readme
 
 
 def test_user_guide_uses_generic_paths_and_documents_json_output() -> None:

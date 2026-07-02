@@ -3,6 +3,7 @@
 This document defines Codex App / Codex CLI adapter command semantics.
 Natural-language triggers and target slash commands should map to the same
 core operations.
+Natural-language triggers are required; slash commands are a target UX layer.
 
 ## Entry Strategy
 
@@ -30,6 +31,8 @@ plus skills must still complete the equivalent core work.
 |---|---|---|---|
 | Initialize or resume Wiki | `set up wiki`, `scaffold vault`, `continue wiki` | `/wiki` | `init` / `status` / `continue` |
 | Ingest local raw source | `ingest .raw/articles/a.md`, `process this source` | `/wiki ingest <source>` | `ingest` |
+| Ingest local raw folder | `ingest this folder`, `ingest .raw/articles` | `/wiki ingest-batch <source-root>` | `ingest-batch` |
+| Ingest one URL | `ingest this URL`, `ingest https://example.com/article` | `/wiki ingest-url <url>` | `ingest-url` |
 | Query Wiki | `what do you know about X`, `query: X` | `/wiki query <question>` | `query` |
 | Search Wiki | `search wiki for X`, `find wiki pages about X` | `/wiki search <query>` | `search` |
 | Lint Wiki | `lint the wiki`, `health check` | `/wiki lint` | `lint` |
@@ -59,6 +62,8 @@ When the vault is initialized:
 
 ## `ingest` Semantics
 
+Ingest one local Markdown source under `.raw/`.
+
 Natural-language examples:
 
 ```text
@@ -83,6 +88,61 @@ Behavior:
 6. Create or update entity / concept pages as needed.
 7. Update `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
 8. Update manifest.
+
+## `ingest-batch` Semantics
+
+Ingest a local Markdown folder or root under `.raw/`.
+
+Natural-language examples:
+
+```text
+ingest this folder
+ingest .raw/articles
+```
+
+Target slash command:
+
+```text
+/wiki ingest-batch .raw/articles
+```
+
+Behavior:
+
+1. Confirm the target root is under `.raw/`.
+2. Enumerate local Markdown sources only.
+3. Read each raw source without modifying it.
+4. Check `.raw/.manifest.json` before writing results.
+5. Skip unchanged sources unless the user requests force re-ingest.
+6. Create or update per-source wiki artifacts.
+7. Update manifest, `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
+8. Record per-source success, skipped, and failed outcomes in batch logs or summaries.
+
+## `ingest-url` Semantics
+
+Ingest one explicit URL.
+
+Natural-language examples:
+
+```text
+ingest this URL
+ingest https://example.com/article
+```
+
+Target slash command:
+
+```text
+/wiki ingest-url https://example.com/article
+```
+
+Behavior:
+
+1. Accept one explicit URL per invocation.
+2. Fetch the source as a text-oriented URL ingest flow.
+3. Write an immutable snapshot under `.raw/url/` before deriving wiki artifacts.
+4. Check `.raw/.manifest.json` and record the raw snapshot metadata.
+5. Create or update the corresponding wiki artifacts from the preserved snapshot.
+6. Update manifest, `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
+7. No crawling, readability pipeline, JavaScript rendering, or authenticated fetch flow is included.
 
 ## `query` Semantics
 
@@ -112,7 +172,7 @@ Behavior:
 
 ## `search` Semantics
 
-Search is read-only and returns ranked wiki pages before query synthesis.
+Search is read-only and returns ranked durable wiki pages before query synthesis.
 
 Natural-language examples:
 
