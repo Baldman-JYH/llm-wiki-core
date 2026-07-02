@@ -6,9 +6,22 @@ The reusable LLM Wiki skill lives in `integrations/codex/skills/llm-wiki`.
 
 Copy the `llm-wiki` skill directory into the Codex user skills directory for your platform.
 
-Use the current Codex documentation for the exact destination path. R4.0 does not automatically mutate global Codex configuration.
+The documented default destination is:
+
+```text
+$HOME/.agents/skills/llm-wiki
+```
+
+Use the installer when possible so user-level installation stays explicit:
+
+- PowerShell: `.\install.ps1 -InstallUserSkill`
+- Shell: `./install.sh --install-user-skill`
+
+R4.1 keeps repo-local install available and does not automatically mutate global Codex configuration.
 
 ## Verification
+
+Verify `SKILL.md` contains `name: llm-wiki`.
 
 Verify the skill includes `llm-wiki search`, `llm-wiki ingest-batch`, and `llm-wiki ingest-url`.
 

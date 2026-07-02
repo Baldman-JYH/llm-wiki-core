@@ -211,6 +211,29 @@ Exit criteria:
 
 - Adapter behavior remains outside neutral core unless it represents a true cross-agent LLM Wiki rule.
 
+### R4.1: Codex User-Level Skill Installation
+
+Window: 2026-07-02
+
+Status: planned.
+
+Scope:
+
+- Explicit `-InstallUserSkill` and `--install-user-skill` paths.
+- Guard tests for installer-facing README and roadmap/package-boundary docs.
+- Default user skill destination documentation for `$HOME/.agents/skills/llm-wiki`.
+- Clear guidance that repo-local install remains available.
+
+Non-scope:
+
+- Marketplace-grade Codex plugin publication.
+- Claude adapter reconstruction.
+- Automatic global Codex configuration edits.
+
+Exit criteria:
+
+- Public docs consistently describe explicit user-level skill install behavior and its deferred boundaries.
+
 ## R5: Knowledge Organization
 
 Window: 2026-08-22 to 2026-09-04

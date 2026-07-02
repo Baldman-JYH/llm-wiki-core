@@ -18,9 +18,11 @@ integrations/codex/install/install.sh <vault> "Research workflow"
 
 ## User-level skill mode
 
-User-level skill mode copies or installs `integrations/codex/skills/llm-wiki` into a user's Codex skills directory.
+User-level skill installation is explicit and dry-run capable. User-level skill mode copies or installs `integrations/codex/skills/llm-wiki` into a user's Codex skills directory only when the installer is called with `-InstallUserSkill` or `--install-user-skill`.
 
-R4.0 documents this mode but does not automatically mutate global Codex configuration.
+The documented default destination is `$HOME/.agents/skills/llm-wiki`. Repo-local install remains available for local vault bootstrap work, and this mode does not automatically mutate global Codex configuration.
+
+Start a new Codex session after installing the skill.
 
 ## Verification
 
