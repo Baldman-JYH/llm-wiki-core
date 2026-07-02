@@ -149,4 +149,4 @@ def test_roadmap_records_r4_0_release_state_and_remaining_adapter_work() -> None
     assert "Status: complete." in schedule
     assert "Release: `v0.3.1-mvp`." in schedule
     assert "Codex adapter packaging readiness is complete for repo-local and documented user-level skill usage." in roadmap
-    assert "Claude adapter reconstruction remains future adapter work." in roadmap
+    assert "Claude adapter reconstruction remains future adapter implementation work." in roadmap
