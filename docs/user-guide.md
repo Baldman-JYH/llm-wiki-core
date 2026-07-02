@@ -155,6 +155,17 @@ llm-wiki continue <vault>
 
 `status` summarizes initialization, source count, runtime transport, missing required paths, and lint report hints. `continue` reads `wiki/hot.md`, `wiki/index.md`, and `wiki/log.md` so the agent can recover recent Wiki context without relying on chat history.
 
+## Search
+
+Use search when you want to inspect the wiki evidence before asking for synthesis:
+
+```powershell
+llm-wiki search <vault> "durable wiki knowledge"
+llm-wiki search <vault> "durable wiki knowledge" --limit 3 --json
+```
+
+Search is read-only. It ranks durable Markdown wiki pages and returns paths, titles, snippets, matched terms, and scores. It does not search `.raw/` by default and does not mutate the wiki.
+
 ## Query And Save
 
 Ask questions against the current Wiki:
@@ -215,7 +226,7 @@ The adapter assets are repo-local. The MVP does not automatically install global
 - Windows native PowerShell install path.
 - Codex App / Codex CLI command discovery through generated `AGENTS.md`.
 - Filesystem transport read/write/search.
-- `init`, `detect-transport`, `ingest`, `query`, `save`, `status`, `continue`, and `lint`.
+- `init`, `detect-transport`, `ingest`, `search`, `query`, `save`, `status`, `continue`, and `lint`.
 - Local `.md` batch ingest under `.raw/`.
 - URL ingest with immutable `.raw/url/` snapshots.
 - Automated artifact-level equivalence verification for the core local loop.
@@ -225,7 +236,8 @@ The adapter assets are repo-local. The MVP does not automatically install global
 - Official `obsidian` CLI read/write/append/list/search is used only after vault binding and capability verification; otherwise filesystem fallback remains active.
 - Full `claude-obsidian` parity is not claimed.
 - Claude Code plugin/hooks/subagent behavior is not implemented in neutral core.
-- HTML cleanup, image ingest, deep retrieval, vector search, LLM synthesis, and marketplace publishing are outside R3.2.
+- Vector search, hybrid retrieval, reranking, qmd integration, raw-source search by default, and LLM synthesis remain outside R3.3.
+- HTML cleanup, image ingest, deep retrieval, and marketplace publishing are outside the current core scope.
 - R3.2 URL ingest is text-only and rejects binary or non-decodable responses.
 - Byte-for-byte equality of LLM-authored prose is intentionally not required for an LLM Wiki.
 

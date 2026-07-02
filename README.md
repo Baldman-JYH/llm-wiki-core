@@ -2,7 +2,7 @@
 
 `llm-wiki-core` is a neutral local LLM Wiki practice implementation. The canonical abstraction is [Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): raw materials stay durable, and the agent maintains a Markdown wiki instead of leaving knowledge trapped in chat. [AgriciDaniel/claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) is the reference implementation for the Claude Code + Obsidian workflow, while `llm-wiki-core` focuses on a neutral, testable core that does not claim full parity with `claude-obsidian`.
 
-Current status: R3.2 adds URL ingest on top of the MVP local loop. The project remains a text-first local workflow and does not claim full parity with `claude-obsidian`.
+Current status: R3.3 adds local read-only wiki search on top of the R3.2 URL ingest flow. The project remains a text-first local workflow and does not claim full parity with `claude-obsidian`.
 
 <!-- Compatibility anchors for existing hygiene tests:
 ## 蹇€熷紑濮?
@@ -66,6 +66,7 @@ llm-wiki ingest-url <vault> https://example.com/article
 ```powershell
 llm-wiki status <vault>
 llm-wiki continue <vault>
+llm-wiki search <vault> "durable wiki knowledge"
 llm-wiki query <vault> "What does the wiki know about this source?"
 llm-wiki save <vault> --title "Saved Insight" --content "Durable insight text."
 llm-wiki lint <vault>
@@ -88,6 +89,7 @@ llm-wiki lint <vault>
 | `llm-wiki ingest-url <vault> <url>` | Fetch one explicit URL, store an immutable `.raw/url/` snapshot, and ingest the normalized Markdown source. |
 | `llm-wiki status <vault>` | Inspect initialization and source status. |
 | `llm-wiki continue <vault>` | Re-enter current wiki context. |
+| `llm-wiki search <vault> "<query>"` | Search ranked local wiki pages with dependency-free BM25-style lexical retrieval. |
 | `llm-wiki query <vault> "<question>"` | Query the wiki. |
 | `llm-wiki save <vault> --content "..."` | Save durable insight back into the wiki. |
 | `llm-wiki lint <vault>` | Check wiki health and write a lint report. |
@@ -136,7 +138,11 @@ llm-wiki lint <vault>
 ## 当前边界
 
 - URL ingest creates immutable `.raw/url/` snapshots.
+- R3.3 search is read-only and searches durable Markdown wiki pages by default.
+- R3.3 uses dependency-free BM25-style lexical retrieval.
+- R3.3 remains text-first on top of the R3.2 URL ingest foundation.
 - R3.2 is text-only.
+- Vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred.
 - R3.2 does not include full readability, defuddle, JavaScript rendering, authenticated pages, or crawling.
 - Binary or non-decodable responses are rejected instead of being archived through the text transport.
 - The official `obsidian` CLI remains optional and verified-only; `filesystem fallback` stays available.

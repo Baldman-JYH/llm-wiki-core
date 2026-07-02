@@ -141,6 +141,32 @@ Follow-up:
 - deeper HTML cleanup remains deferred
 - deep retrieval and search layers remain deferred to future R3 work
 
+### R3.3: Retrieval Foundation
+
+Window: 2026-06-30
+
+Status: complete.
+
+Scope:
+
+- Read-only `search` operation.
+- CLI command `llm-wiki search <vault> "<query>" [--limit N] [--json]`.
+- Dependency-free BM25-style lexical retrieval over durable Markdown wiki pages.
+- Query operation reuses the retrieval foundation.
+
+Non-scope:
+
+- Vector search.
+- Hybrid retrieval.
+- LLM reranking.
+- qmd integration.
+- Raw-source search by default.
+- LLM synthesis save policy.
+
+Follow-up:
+
+- Deep retrieval, hybrid retrieval, vector search, reranking, and LLM synthesis remain deferred.
+
 ## R4: Adapter Expansion
 
 Window: 2026-08-08 to 2026-08-21

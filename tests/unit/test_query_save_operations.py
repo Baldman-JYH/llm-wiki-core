@@ -42,6 +42,20 @@ def test_query_wiki_reports_gap_when_no_relevant_page_exists(tmp_path) -> None:
     assert result.gaps == ["No relevant wiki page found for: unrepresented topic"]
 
 
+def test_query_wiki_reports_gap_for_stopword_only_question(tmp_path) -> None:
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.query import query_wiki
+
+    init_vault(tmp_path, purpose="Stopword query test")
+
+    result = query_wiki(tmp_path, "what is the and")
+
+    assert result.operation == "query"
+    assert result.status == "needs_sources"
+    assert result.cited_pages == []
+    assert result.gaps == ["No relevant wiki page found for: what is the and"]
+
+
 def test_query_wiki_reads_pages_through_transport(tmp_path) -> None:
     from llm_wiki_core.operations.query import query_wiki
 
@@ -76,6 +90,102 @@ def test_query_wiki_reads_pages_through_transport(tmp_path) -> None:
     assert "wiki/sources/Transport Page.md" in transport.read_paths
     assert "wiki/sources" in transport.list_roots
     assert "wiki/concepts" in transport.list_roots
+
+
+def test_query_delegates_candidate_selection_to_search_wiki(tmp_path, monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    import llm_wiki_core.operations.query as query_module
+
+    class SpyTransport:
+        def __init__(self) -> None:
+            self.read_paths: list[str] = []
+            self.files = {
+                "wiki/hot.md": "# Hot\n",
+                "wiki/index.md": "# Index\n",
+            }
+
+        def read_text(self, relative_path: str) -> str:
+            self.read_paths.append(relative_path)
+            return self.files[relative_path]
+
+    calls: list[tuple[object, str, int, object]] = []
+
+    def fake_search_wiki(vault_root, question: str, *, limit: int, transport: object):
+        calls.append((vault_root, question, limit, transport))
+        return SimpleNamespace(
+            results=[
+                SimpleNamespace(
+                    path="wiki/concepts/Search Delegation.md",
+                    title="Search Delegation",
+                    snippet="Delegated search result.",
+                )
+            ]
+        )
+
+    monkeypatch.setattr(query_module, "search_wiki", fake_search_wiki)
+    transport = SpyTransport()
+
+    result = query_module.query_wiki(tmp_path, "delegated search", transport=transport)
+
+    assert result.status == "success"
+    assert result.cited_pages == ["wiki/concepts/Search Delegation.md"]
+    assert calls == [(tmp_path, "delegated search", 3, transport)]
+    assert transport.read_paths == ["wiki/hot.md", "wiki/index.md"]
+
+
+def test_query_ignores_index_only_matches_when_selecting_cited_pages(tmp_path) -> None:
+    from llm_wiki_core.operations.query import query_wiki
+
+    class SpyTransport:
+        def __init__(self) -> None:
+            self.read_paths: list[str] = []
+            self.files = {
+                "wiki/hot.md": "# Hot\n",
+                "wiki/index.md": "# Index\n\nThis index mentions index-only-topic.",
+                "wiki/sources/Source Page.md": "# Source Page\n\nNo relevant source evidence.",
+            }
+
+        def read_text(self, relative_path: str) -> str:
+            self.read_paths.append(relative_path)
+            return self.files[relative_path]
+
+        def list_markdown(self, root: str = "wiki") -> list[str]:
+            return sorted(path for path in self.files if path.startswith(root + "/") and path.endswith(".md"))
+
+    transport = SpyTransport()
+
+    result = query_wiki(tmp_path, "index-only-topic", transport=transport)
+
+    assert result.status == "needs_sources"
+    assert result.cited_pages == []
+    assert "wiki/index.md" in transport.read_paths
+    assert "wiki/hot.md" in transport.read_paths
+
+
+def test_query_uses_retrieval_foundation_for_ranked_pages(tmp_path) -> None:
+    from llm_wiki_core.operations.query import query_wiki
+
+    class SpyTransport:
+        def __init__(self) -> None:
+            self.files = {
+                "wiki/hot.md": "# Hot\n",
+                "wiki/index.md": "# Index\n",
+                "wiki/concepts/Durable Wiki.md": "# Durable Wiki\n\nDurable wiki knowledge appears several times. Durable wiki.",
+                "wiki/sources/Karpathy LLM Wiki.md": "# Karpathy LLM Wiki\n\nThe LLM Wiki pattern compiles knowledge.",
+            }
+
+        def read_text(self, relative_path: str) -> str:
+            return self.files[relative_path]
+
+        def list_markdown(self, root: str = "wiki") -> list[str]:
+            return sorted(path for path in self.files if path.startswith(root + "/") and path.endswith(".md"))
+
+    result = query_wiki(tmp_path, "durable wiki knowledge", transport=SpyTransport())
+
+    assert result.status == "success"
+    assert result.cited_pages[0] == "wiki/concepts/Durable Wiki.md"
+    assert "[[Durable Wiki]]" in result.answer
 
 
 def test_save_insight_creates_question_page_and_updates_wiki(tmp_path) -> None:
