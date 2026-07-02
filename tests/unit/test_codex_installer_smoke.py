@@ -45,6 +45,16 @@ def test_shell_installer_documents_user_skill_install_flags() -> None:
     assert "$HOME/.agents/skills/llm-wiki" in text
 
 
+def test_shell_installer_documents_replace_guardrails() -> None:
+    text = (_repo_root() / "integrations" / "codex" / "install" / "install.sh").read_text(encoding="utf-8")
+
+    assert "Refusing to replace Codex user skill destination" in text
+    assert 'basename "$resolved_skill_destination"' in text
+    assert 'case "$resolved_skill_destination" in' in text
+    for forbidden in ['""', '|/|.|..|', '"$HOME"', '"$HOME/.agents"', '"$HOME/.agents/skills"', '"llm-wiki"']:
+        assert forbidden in text
+
+
 def test_install_readme_uses_portable_examples_not_private_paths() -> None:
     text = (_repo_root() / "integrations" / "codex" / "install" / "README.md").read_text(encoding="utf-8")
 
@@ -183,6 +193,106 @@ def test_shell_user_skill_install_copies_skill_to_destination(tmp_path) -> None:
     assert result.returncode == 0
     assert "Codex user skill installed" in output
     assert (destination / "SKILL.md").exists()
+
+
+def test_shell_user_skill_install_existing_identical_destination_returns_success(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.sh"
+    source = _repo_root() / "integrations" / "codex" / "skills" / "llm-wiki"
+    destination = tmp_path / "skills" / "llm-wiki"
+    destination.parent.mkdir(parents=True)
+    shutil.copytree(source, destination)
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-user-skill",
+            "--skill-destination",
+            str(destination),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "already installed" in output
+
+
+def test_shell_user_skill_install_refuses_different_existing_destination_without_replace(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.sh"
+    destination = tmp_path / "skills" / "llm-wiki"
+    destination.mkdir(parents=True)
+    (destination / "SKILL.md").write_text("---\nname: other\n---\n", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-user-skill",
+            "--skill-destination",
+            str(destination),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "already exists and differs" in output
+    assert "--replace-user-skill" in output
+
+
+def test_shell_user_skill_install_replace_overwrites_existing_destination(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.sh"
+    destination = tmp_path / "skills" / "llm-wiki"
+    destination.mkdir(parents=True)
+    (destination / "SKILL.md").write_text("---\nname: other\n---\n", encoding="utf-8")
+    (destination / "extra.txt").write_text("legacy", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-user-skill",
+            "--skill-destination",
+            str(destination),
+            "--replace-user-skill",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "Codex user skill installed" in output
+    assert (destination / "SKILL.md").exists()
+    assert "name: llm-wiki" in (destination / "SKILL.md").read_text(encoding="utf-8")
+    assert not (destination / "extra.txt").exists()
 
 
 def test_powershell_user_skill_install_dry_run_does_not_write_destination(tmp_path) -> None:

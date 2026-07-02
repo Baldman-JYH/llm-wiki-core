@@ -37,6 +37,23 @@ show_user_skill_next_prompts() {
   echo "Next Codex prompt: search wiki for durable knowledge"
 }
 
+assert_safe_replace_destination() {
+  resolved_skill_destination="$1"
+  destination_basename="$(basename "$resolved_skill_destination")"
+
+  case "$resolved_skill_destination" in
+    ""|/|.|..|"$HOME"|"$HOME/.agents"|"$HOME/.agents/skills")
+      echo "Refusing to replace Codex user skill destination \"$resolved_skill_destination\" because it is outside the allowed llm-wiki directory boundary." >&2
+      exit 1
+      ;;
+  esac
+
+  if [ "$destination_basename" != "llm-wiki" ]; then
+    echo "Refusing to replace Codex user skill destination \"$resolved_skill_destination\" because its basename must be \"llm-wiki\"." >&2
+    exit 1
+  fi
+}
+
 install_user_skill() {
   resolved_skill_destination="$SKILL_DESTINATION"
   if [ -z "$resolved_skill_destination" ]; then
@@ -81,6 +98,7 @@ install_user_skill() {
       exit 1
     fi
 
+    assert_safe_replace_destination "$resolved_skill_destination"
     rm -rf "$resolved_skill_destination"
   fi
 
