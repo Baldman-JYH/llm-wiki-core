@@ -19,6 +19,11 @@ DOCS = [
     "docs/roadmap-schedule.md",
 ]
 
+PROCESS_DOCS = [
+    "docs/superpowers/plans/2026-07-02-r4-1-codex-user-skill-installation.md",
+    "docs/superpowers/specs/2026-07-02-r4-1-codex-user-skill-installation-design.md",
+]
+
 
 def test_r4_1_docs_have_no_private_paths_or_damaged_text() -> None:
     damaged = ["\ufffd", "闂?", "濞?", "闁?", "婵°倗濮撮惌渚€鎯?"]
@@ -29,6 +34,19 @@ def test_r4_1_docs_have_no_private_paths_or_damaged_text() -> None:
         assert not [marker for marker in damaged if marker in text], relative
         for pattern in private_path_patterns:
             assert not re.search(pattern, text), f"{relative} contains {pattern}"
+
+
+def test_r4_1_process_docs_have_no_private_workspace_paths() -> None:
+    private_workspace_markers = [
+        "D:/ai/llmWiki",
+        "D:\\ai\\llmWiki",
+        "C:/Users/Administrator",
+        "C:\\Users\\Administrator",
+    ]
+
+    for relative in PROCESS_DOCS:
+        text = _read(relative)
+        assert not [marker for marker in private_workspace_markers if marker in text], relative
 
 
 def test_install_readme_documents_explicit_user_skill_install() -> None:

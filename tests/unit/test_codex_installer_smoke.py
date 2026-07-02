@@ -396,3 +396,75 @@ def test_powershell_user_skill_install_refuses_different_existing_destination(tm
     assert result.returncode != 0
     assert "already exists and differs" in output
     assert "ReplaceUserSkill" in output
+
+
+def test_powershell_user_skill_install_refuses_replace_outside_llm_wiki_boundary(tmp_path) -> None:
+    shell = shutil.which("pwsh") or shutil.which("powershell")
+    if shell is None:
+        pytest.skip("PowerShell executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.ps1"
+    destination = tmp_path / "not-llm-wiki"
+    destination.mkdir()
+    marker = destination / "keep.txt"
+    marker.write_text("do not delete", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-InstallUserSkill",
+            "-SkillDestination",
+            str(destination),
+            "-ReplaceUserSkill",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Refusing to replace Codex user skill destination" in output
+    assert marker.exists()
+
+
+def test_powershell_user_skill_install_replace_overwrites_existing_llm_wiki_destination(tmp_path) -> None:
+    shell = shutil.which("pwsh") or shutil.which("powershell")
+    if shell is None:
+        pytest.skip("PowerShell executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.ps1"
+    destination = tmp_path / "skills" / "llm-wiki"
+    destination.mkdir(parents=True)
+    (destination / "SKILL.md").write_text("---\nname: other\n---\n", encoding="utf-8")
+    (destination / "extra.txt").write_text("legacy", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-InstallUserSkill",
+            "-SkillDestination",
+            str(destination),
+            "-ReplaceUserSkill",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "Codex user skill installed" in output
+    assert (destination / "SKILL.md").exists()
+    assert "name: llm-wiki" in (destination / "SKILL.md").read_text(encoding="utf-8")
+    assert not (destination / "extra.txt").exists()

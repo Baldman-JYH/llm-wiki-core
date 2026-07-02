@@ -494,7 +494,7 @@ git commit -m "补充 R4.1 用户级技能安装文档"
 ### Task 4: Final R4.1 Verification And Progress Record
 
 **Files:**
-- Modify: `D:/ai/llmWiki/codex_doc/project_understanding_progress.md`
+- Modify: external `codex_doc/project_understanding_progress.md`
 - No repository code changes unless verification exposes a defect.
 
 **Interfaces:**
@@ -564,7 +564,7 @@ Expected:
 
 - [ ] **Step 6: Update external progress document**
 
-Append a stage to `D:/ai/llmWiki/codex_doc/project_understanding_progress.md` recording:
+Append a stage to external `codex_doc/project_understanding_progress.md` recording:
 
 - R4.1 implementation commits;
 - focused test result;

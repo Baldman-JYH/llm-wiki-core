@@ -77,6 +77,73 @@ function Show-UserSkillNextPrompts {
   Write-Host "Next Codex prompt: search wiki for durable knowledge"
 }
 
+function Get-NormalizedPath {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Path
+  )
+
+  $fullPath = [System.IO.Path]::GetFullPath($Path)
+  $rootPath = [System.IO.Path]::GetPathRoot($fullPath)
+  while (
+    $fullPath.Length -gt $rootPath.Length -and
+    ($fullPath.EndsWith("\") -or $fullPath.EndsWith("/"))
+  ) {
+    $fullPath = $fullPath.Substring(0, $fullPath.Length - 1)
+  }
+
+  return $fullPath
+}
+
+function Test-SamePath {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Left,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Right
+  )
+
+  $normalizedLeft = Get-NormalizedPath -Path $Left
+  $normalizedRight = Get-NormalizedPath -Path $Right
+  return [string]::Equals($normalizedLeft, $normalizedRight, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
+function Assert-SafeReplaceDestination {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Destination
+  )
+
+  if ([string]::IsNullOrWhiteSpace($Destination)) {
+    throw "Refusing to replace Codex user skill destination because it is empty."
+  }
+
+  $trimmedDestination = $Destination.Trim()
+  if ($trimmedDestination -eq "." -or $trimmedDestination -eq "..") {
+    throw "Refusing to replace Codex user skill destination `"$Destination`" because it is outside the allowed llm-wiki directory boundary."
+  }
+
+  $normalizedDestination = Get-NormalizedPath -Path $trimmedDestination
+  $rootPath = Get-NormalizedPath -Path ([System.IO.Path]::GetPathRoot($normalizedDestination))
+  $homePath = Get-NormalizedPath -Path $HOME
+  $agentsPath = Get-NormalizedPath -Path (Join-Path $HOME ".agents")
+  $skillsPath = Get-NormalizedPath -Path (Join-Path $HOME ".agents\skills")
+
+  if (
+    (Test-SamePath -Left $normalizedDestination -Right $rootPath) -or
+    (Test-SamePath -Left $normalizedDestination -Right $homePath) -or
+    (Test-SamePath -Left $normalizedDestination -Right $agentsPath) -or
+    (Test-SamePath -Left $normalizedDestination -Right $skillsPath)
+  ) {
+    throw "Refusing to replace Codex user skill destination `"$Destination`" because it is outside the allowed llm-wiki directory boundary."
+  }
+
+  if ([System.IO.Path]::GetFileName($normalizedDestination) -ne "llm-wiki") {
+    throw "Refusing to replace Codex user skill destination `"$Destination`" because its leaf directory must be `"llm-wiki`"."
+  }
+}
+
 function Install-UserSkill {
   $resolvedSkillDestination = if ([string]::IsNullOrWhiteSpace($SkillDestination)) {
     Join-Path $HOME ".agents\skills\llm-wiki"
@@ -118,6 +185,7 @@ function Install-UserSkill {
       throw "Codex user skill destination already exists and differs. Re-run with -ReplaceUserSkill to replace it."
     }
 
+    Assert-SafeReplaceDestination -Destination $resolvedSkillDestination
     Remove-Item -LiteralPath $resolvedSkillDestination -Recurse -Force
   }
 
