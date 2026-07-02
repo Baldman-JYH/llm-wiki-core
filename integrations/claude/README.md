@@ -25,6 +25,34 @@ The neutral core owns durable Markdown Wiki artifacts. The Claude adapter owns C
 | `/wiki lint` | `llm-wiki lint <vault>` |
 | `/save` | `llm-wiki save <vault> --title "..." --content "..."` |
 
+## R4.3 Local Adapter MVP
+
+R4.3 local adapter MVP provides project-local Claude assets for `/wiki` and `/save`.
+
+It is project-local and does not edit user-global Claude settings automatically.
+
+Canonical surface:
+
+- `CLAUDE.template.md`
+- `skills/llm-wiki/SKILL.md`
+- thin `commands/wiki.md` and `commands/save.md` wrappers
+
+Active Claude hooks are deferred.
+
+Claude subagents are deferred.
+
+.claude-plugin packaging is deferred.
+
+Autoresearch is deferred.
+
+Canvas workflows are deferred.
+
+DragonScale memory is deferred.
+
+Methodology modes are deferred.
+
+Automatic Git commits are deferred.
+
 ## Adapter-Only Behavior
 
 Claude Code hooks are adapter-only.
