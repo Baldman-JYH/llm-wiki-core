@@ -36,6 +36,15 @@ def test_shell_installer_has_dry_run_plan_and_reentry_hints() -> None:
     assert "llm-wiki continue" in text
 
 
+def test_shell_installer_documents_user_skill_install_flags() -> None:
+    text = (_repo_root() / "integrations" / "codex" / "install" / "install.sh").read_text(encoding="utf-8")
+
+    assert "--install-user-skill" in text
+    assert "--skill-destination" in text
+    assert "--replace-user-skill" in text
+    assert "$HOME/.agents/skills/llm-wiki" in text
+
+
 def test_install_readme_uses_portable_examples_not_private_paths() -> None:
     text = (_repo_root() / "integrations" / "codex" / "install" / "README.md").read_text(encoding="utf-8")
 
@@ -111,6 +120,69 @@ def test_shell_installer_dry_run_does_not_create_vault(tmp_path) -> None:
     assert "llm-wiki status" in output
     assert "llm-wiki continue" in output
     assert not vault.exists()
+
+
+def test_shell_user_skill_install_dry_run_does_not_write_destination(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.sh"
+    destination = tmp_path / "skills" / "llm-wiki"
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-user-skill",
+            "--skill-destination",
+            str(destination),
+            "--dry-run",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "DRY RUN" in output
+    assert "Install Codex user skill" in output
+    assert "llm-wiki" in output
+    assert not destination.exists()
+
+
+def test_shell_user_skill_install_copies_skill_to_destination(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = _repo_root() / "integrations" / "codex" / "install" / "install.sh"
+    destination = tmp_path / "skills" / "llm-wiki"
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-user-skill",
+            "--skill-destination",
+            str(destination),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "Codex user skill installed" in output
+    assert (destination / "SKILL.md").exists()
 
 
 def test_powershell_user_skill_install_dry_run_does_not_write_destination(tmp_path) -> None:
