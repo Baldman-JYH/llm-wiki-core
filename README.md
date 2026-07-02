@@ -2,7 +2,8 @@
 
 `llm-wiki-core` is a neutral local LLM Wiki practice implementation. The canonical abstraction is [Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): raw materials stay durable, and the agent maintains a Markdown wiki instead of leaving knowledge trapped in chat. [AgriciDaniel/claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) is the reference implementation for the Claude Code + Obsidian workflow, while `llm-wiki-core` focuses on a neutral, testable core that does not claim full parity with `claude-obsidian`.
 
-Current release: `v0.2.0-mvp`. R3.3 adds local read-only wiki search on top of the R3.2 URL ingest flow.
+Current release: `v0.2.0-mvp`.
+Current status: R3.3 adds local read-only wiki search on top of the R3.2 URL ingest flow.
 
 ## Project Positioning
 
@@ -53,11 +54,22 @@ llm-wiki ingest-url <vault> https://example.com/article
 
 ```powershell
 llm-wiki status <vault>
+llm-wiki status <vault> --json
 llm-wiki continue <vault>
 llm-wiki search <vault> "durable wiki knowledge"
 llm-wiki query <vault> "What does the wiki know about this source?"
 llm-wiki save <vault> --title "Saved Insight" --content "Durable insight text."
 llm-wiki lint <vault>
+```
+
+## Machine-Readable Output
+
+Operational commands that report status or ingest results support `--json` for machine-readable JSON output. This keeps Codex App, Codex CLI, and future adapters on a stable contract while preserving human-readable defaults.
+
+```powershell
+llm-wiki status <vault> --json
+llm-wiki ingest-url <vault> https://example.com/article --json
+llm-wiki search <vault> "durable wiki knowledge" --limit 5 --json
 ```
 
 ## Command Reference
@@ -110,6 +122,7 @@ Codex entry points must call the neutral core commands instead of redefining LLM
 ## Current Boundaries
 
 - URL ingest creates immutable `.raw/url/` snapshots.
+- R3.2 is text-only. It does not include full readability, defuddle, JavaScript rendering, authenticated pages, or crawling.
 - R3.3 search is read-only and searches durable Markdown wiki pages by default.
 - R3.3 uses dependency-free BM25-style lexical retrieval.
 - R3.3 remains text-first on top of the R3.2 URL ingest foundation.
@@ -117,6 +130,17 @@ Codex entry points must call the neutral core commands instead of redefining LLM
 - Full readability, defuddle, JavaScript rendering, authenticated pages, and crawling remain deferred.
 - Binary or non-decodable responses are rejected instead of being archived through the text transport.
 - The official `obsidian` CLI remains optional and verified-only; filesystem fallback stays available.
+
+## Documentation
+
+- [User guide](docs/user-guide.md)
+- [Operation contract](docs/operation-contract.md)
+- [Completion criteria](docs/completion-criteria.md)
+- [Roadmap](docs/roadmap.md)
+- [Roadmap schedule](docs/roadmap-schedule.md)
+- [Release readiness checklist](docs/release-readiness-checklist.md)
+- [v0.1.0 MVP release notes](docs/release-notes-v0.1.0-mvp.md)
+- [Archive manifest](docs/archive-manifest.md)
 
 ## Roadmap
 
