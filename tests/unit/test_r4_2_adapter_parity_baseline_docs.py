@@ -91,3 +91,47 @@ def test_r4_2_public_parity_doc_has_no_private_paths_or_damaged_text() -> None:
     assert not [marker for marker in damaged if marker in text]
     for pattern in private_path_patterns:
         assert not re.search(pattern, text), f"docs/adapter-parity-baseline.md contains {pattern}"
+
+
+def test_claude_adapter_readme_defines_reconstruction_boundary() -> None:
+    text = _read("integrations/claude/README.md")
+
+    assert "# Claude Adapter" in text
+    assert "Claude Code adapter work is future adapter work." in text
+    assert (
+        "It should reconstruct Claude-specific surfaces from the `AgriciDaniel/claude-obsidian` "
+        "reference implementation without moving those surfaces into neutral core." in text
+    )
+    assert "## Command Mapping Baseline" in text
+    assert "| `/wiki` | `llm-wiki init`, `llm-wiki continue`, or a specific `/wiki` subcommand depending on vault state |" in text
+    assert "| `/save` | `llm-wiki save <vault> --title \"...\" --content \"...\"` |" in text
+    assert "Claude Code hooks are adapter-only." in text
+    assert "Claude Code subagents are adapter-only." in text
+    assert "No `.claude-plugin` package is generated in R4.2." in text
+
+
+def test_capability_mapping_records_r4_2_parity_layers() -> None:
+    text = _read("docs/capability-mapping.md")
+
+    assert "| Capability | Layer | Current status | Codex adapter behavior | Claude adapter behavior | Boundary |" in text
+    assert "| Adapter parity baseline | Docs + tests | R4.2 complete | Natural-language triggers map to neutral commands | Slash-command intent maps to neutral commands | Artifact-level parity; no byte-for-byte parity |" in text
+    assert "| Claude slash commands | Claude adapter | Planned after R4.2 | No Codex dependency | Wrap `/wiki` and `/save` around neutral commands | Adapter-only |" in text
+    assert "| Claude hooks and subagents | Claude adapter | Deferred | Do not generate from Codex adapter | Keep as future Claude-only reconstruction | Adapter-only; never neutral core |" in text
+    assert "| Autoresearch | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |" in text
+    assert "| Canvas workflows | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |" in text
+    assert "| DragonScale or log-folding memory | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |" in text
+
+
+def test_capability_mapping_does_not_overclaim_claude_obsidian_parity() -> None:
+    text = _read("docs/capability-mapping.md").lower()
+
+    forbidden_claims = [
+        "full claude-obsidian parity is complete",
+        "claude hooks are neutral core",
+        "claude subagents are neutral core",
+        "autoresearch is implemented",
+        "canvas workflows are implemented",
+        "dragonscale is implemented",
+    ]
+    for claim in forbidden_claims:
+        assert claim not in text
