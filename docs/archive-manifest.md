@@ -22,7 +22,7 @@ Date: 2026-06-26
 The release archive is generated from the local Git tag:
 
 ```powershell
-git archive --format=zip --output D:\ai\llmWiki\release_artifacts\llm-wiki-core-v0.1.0-mvp.zip v0.1.0-mvp
+git archive --format=zip --output <release-artifacts>/llm-wiki-core-v0.1.0-mvp.zip v0.1.0-mvp
 ```
 
 This ensures the archive includes tracked release content and excludes runtime state.

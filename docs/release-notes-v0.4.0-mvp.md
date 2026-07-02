@@ -41,8 +41,8 @@ git diff --check
 Expected result for this release line:
 
 ```text
-16 passed, 6 skipped
-220 passed, 6 skipped
+25 passed, 6 skipped
+221 passed, 6 skipped
 ```
 
 The skipped tests are POSIX shell execution checks that are expected on Windows. They do not require Windows users to install WSL or Git Bash.
