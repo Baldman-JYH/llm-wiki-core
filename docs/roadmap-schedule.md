@@ -171,7 +171,7 @@ Follow-up:
 
 Window: 2026-08-08 to 2026-08-21
 
-Status: R4.1 complete; remaining R4.x adapter work deferred.
+Status: R4.2 complete; remaining R4.x adapter implementation work deferred.
 
 Scope:
 
@@ -242,6 +242,39 @@ Non-scope:
 Exit criteria:
 
 - Public docs consistently describe explicit user-level skill install behavior and its deferred boundaries.
+
+### R4.2: Adapter Parity Baseline
+
+Window: 2026-07-02
+
+Status: complete.
+
+Scope:
+
+- Public adapter parity baseline document.
+- Claude adapter reconstruction boundary.
+- Capability mapping for neutral core, Codex adapter, Claude adapter, and deferred extensions.
+- Guard tests against full `claude-obsidian` parity claims.
+- Guard tests for artifact-level parity rather than byte-for-byte parity.
+
+Completed outcome:
+
+- Documented Karpathy's LLM Wiki gist as the canonical abstract pattern.
+- Documented `AgriciDaniel/claude-obsidian` as the Claude Code + Obsidian reference implementation case.
+- Defined Codex and Claude command intent mapping to the same neutral core operations.
+- Kept Claude hooks, Claude subagents, `.claude-plugin`, autoresearch, canvas, hybrid retrieval, DragonScale, methodology modes, and marketplace-grade Codex plugin packaging deferred.
+
+Non-scope:
+
+- `.claude-plugin` generation.
+- Claude Code hooks.
+- Claude Code subagents.
+- Marketplace-grade Codex plugin packaging.
+- Autoresearch, canvas, hybrid retrieval, DragonScale, and methodology modes.
+
+Exit criteria:
+
+- Adapter parity claims are public, tested, and limited to artifact-level parity.
 
 ## R5: Knowledge Organization
 

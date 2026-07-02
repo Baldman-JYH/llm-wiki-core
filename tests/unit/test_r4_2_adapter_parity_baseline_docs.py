@@ -135,3 +135,55 @@ def test_capability_mapping_does_not_overclaim_claude_obsidian_parity() -> None:
     ]
     for claim in forbidden_claims:
         assert claim not in text
+
+
+R4_2_PUBLIC_DOCS = [
+    "docs/adapter-parity-baseline.md",
+    "docs/capability-mapping.md",
+    "docs/roadmap.md",
+    "docs/roadmap-schedule.md",
+    "integrations/claude/README.md",
+]
+
+R4_2_PROCESS_DOCS = [
+    "docs/superpowers/specs/2026-07-02-r4-2-adapter-parity-baseline-design.md",
+    "docs/superpowers/plans/2026-07-02-r4-2-adapter-parity-baseline.md",
+]
+
+
+def test_r4_2_public_docs_have_no_private_paths_or_damaged_text() -> None:
+    damaged = ["\ufffd", "闂", "濞", "闁", "闂", "婵°倗濮撮惌渚€鎯"]
+    private_path_patterns = [r"\b[A-Z]:[\\/]", r"D:/", r"D:\\", r"C:/", r"C:\\"]
+
+    for relative in R4_2_PUBLIC_DOCS:
+        text = _read(relative)
+        assert not [marker for marker in damaged if marker in text], relative
+        for pattern in private_path_patterns:
+            assert not re.search(pattern, text), f"{relative} contains {pattern}"
+
+
+def test_r4_2_process_docs_have_no_private_workspace_paths() -> None:
+    private_workspace_markers = [
+        "D:" + "/ai/llmWiki",
+        "D:" + "\\ai\\llmWiki",
+        "C:" + "/Users/Administrator",
+        "C:" + "\\Users\\Administrator",
+    ]
+
+    for relative in R4_2_PROCESS_DOCS:
+        text = _read(relative)
+        assert not [marker for marker in private_workspace_markers if marker in text], relative
+
+
+def test_roadmap_records_r4_2_adapter_parity_baseline() -> None:
+    roadmap = _read("docs/roadmap.md")
+    schedule = _read("docs/roadmap-schedule.md")
+
+    assert "R4.2 adapter parity baseline is complete for documentation and guard tests." in roadmap
+    assert "Artifact-level Codex / Claude parity is the target; byte-for-byte LLM prose parity is not." in roadmap
+    assert "Claude adapter reconstruction remains future adapter implementation work." in roadmap
+    assert "### R4.2: Adapter Parity Baseline" in schedule
+    assert "Status: complete." in schedule
+    assert "Public adapter parity baseline document." in schedule
+    assert "Claude adapter reconstruction boundary." in schedule
+    assert "Guard tests against full `claude-obsidian` parity claims." in schedule
