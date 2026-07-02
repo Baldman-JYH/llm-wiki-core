@@ -33,6 +33,8 @@ Claude Code subagents are adapter-only.
 
 Claude slash commands are adapter-only.
 
+Claude-specific plugin manifests, hooks, slash commands, and subagent behavior must stay out of the neutral core.
+
 No `.claude-plugin` package is generated in R4.2.
 
 No Claude hook or subagent file is generated in R4.2.
