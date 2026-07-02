@@ -2,8 +2,8 @@
 
 `llm-wiki-core` is a neutral local LLM Wiki practice implementation. The canonical abstraction is [Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): raw materials stay durable, and the agent maintains a Markdown wiki instead of leaving knowledge trapped in chat. [AgriciDaniel/claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) is the reference implementation for the Claude Code + Obsidian workflow, while `llm-wiki-core` focuses on a neutral, testable core that does not claim full parity with `claude-obsidian`.
 
-Current release: `v0.2.0-mvp`.
-Current status: R3.3 adds local read-only wiki search on top of the R3.2 URL ingest flow.
+Current release: `v0.3.1-mvp`.
+Current status: R4.0 publishes Codex adapter packaging readiness on top of the R3.3 retrieval foundation.
 
 ## Project Positioning
 
@@ -115,7 +115,7 @@ llm-wiki search <vault> "durable wiki knowledge" --limit 5 --json
 
 ## Codex Adapter
 
-The Codex adapter assets live under `integrations/codex/`. Repo-local install scripts initialize a vault and print re-entry commands. User-level skill packaging is being prepared in R4.0.
+The Codex adapter assets live under `integrations/codex/`. Repo-local install scripts initialize a vault and print re-entry commands. User-level skill packaging is documented as a reusable readiness path.
 
 Codex entry points must call the neutral core commands instead of redefining LLM Wiki behavior. Natural-language triggers are required; slash commands are a target UX layer.
 
@@ -147,7 +147,8 @@ Codex entry points must call the neutral core commands instead of redefining LLM
 - R1: hardening.
 - R2: verified optional runtime transport for the official `obsidian` CLI.
 - R3: ingest and retrieval expansion, including local Markdown batch ingest, URL ingest, and local wiki search.
-- R4: adapter expansion.
+- R4.0: Codex adapter packaging readiness.
+- R4.x: remaining adapter expansion, including Claude adapter reconstruction and future plugin packaging.
 - R5: knowledge-organization extensions.
 
 See [docs/roadmap-schedule.md](docs/roadmap-schedule.md) for the prioritized schedule.

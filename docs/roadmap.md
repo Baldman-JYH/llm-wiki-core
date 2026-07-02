@@ -44,11 +44,14 @@ The portable baseline remains filesystem. The official `obsidian` CLI is optiona
 
 ## Adapter Roadmap
 
-- Codex adapter packaging beyond repo-local assets.
-- Optional user-level Codex skill installation.
-- Optional Codex plugin packaging.
-- Claude adapter reconstruction.
-- Claude Code commands, hooks, and subagents as adapter-only behavior.
+Codex adapter packaging readiness is complete for repo-local and documented user-level skill usage.
+
+Remaining adapter work:
+
+- Optional automated user-level Codex skill installation.
+- Optional marketplace-grade Codex plugin packaging.
+- Claude adapter reconstruction remains future adapter work.
+- Claude Code commands, hooks, and subagents remain adapter-only behavior.
 
 ## Knowledge Organization Roadmap
 

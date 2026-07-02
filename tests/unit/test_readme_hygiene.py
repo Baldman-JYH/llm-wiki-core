@@ -70,10 +70,11 @@ def test_readme_avoids_damaged_text_and_compatibility_anchors() -> None:
         assert fragment not in readme
 
 
-def test_readme_documents_current_r3_3_and_v0_2_mvp_scope() -> None:
+def test_readme_documents_current_r4_0_and_v0_3_1_mvp_scope() -> None:
     readme = _readme()
 
-    assert "Current release: `v0.2.0-mvp`" in readme
+    assert "Current release: `v0.3.1-mvp`" in readme
+    assert "Current status: R4.0 publishes Codex adapter packaging readiness on top of the R3.3 retrieval foundation." in readme
     assert 'llm-wiki search <vault> "durable wiki knowledge"' in readme
     assert "R3.3 search is read-only and searches durable Markdown wiki pages by default." in readme
     assert "Vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred." in readme

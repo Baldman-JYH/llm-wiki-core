@@ -111,3 +111,14 @@ def test_codex_integration_docs_document_user_level_skill_without_global_mutatio
     assert "Verify the skill includes `llm-wiki search`" in skills
     assert "Plugin packaging is a future target" in plugin
     assert "not a marketplace-ready plugin" in plugin
+
+
+def test_roadmap_records_r4_0_release_state_and_remaining_adapter_work() -> None:
+    schedule = _read("docs/roadmap-schedule.md")
+    roadmap = _read("docs/roadmap.md")
+
+    assert "### R4.0: Codex Adapter Packaging Readiness" in schedule
+    assert "Status: complete." in schedule
+    assert "Release: `v0.3.1-mvp`." in schedule
+    assert "Codex adapter packaging readiness is complete for repo-local and documented user-level skill usage." in roadmap
+    assert "Claude adapter reconstruction remains future adapter work." in roadmap

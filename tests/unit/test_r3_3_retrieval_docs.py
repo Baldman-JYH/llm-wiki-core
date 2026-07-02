@@ -13,7 +13,7 @@ def _read(relative: str) -> str:
 def test_readme_documents_r3_3_search_command_and_boundaries() -> None:
     text = _read("README.md")
 
-    assert "Current status: R3.3 adds local read-only wiki search on top of the R3.2 URL ingest flow." in text
+    assert "R3.3 retrieval foundation" in text or "R3.3 search" in text
     assert 'llm-wiki search <vault> "durable wiki knowledge"' in text
     assert '| `llm-wiki search <vault> "<query>"` | Search ranked local wiki pages with dependency-free BM25-style lexical retrieval. |' in text
     assert "R3.3 search is read-only and searches durable Markdown wiki pages by default." in text

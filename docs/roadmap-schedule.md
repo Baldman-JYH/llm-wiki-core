@@ -171,12 +171,41 @@ Follow-up:
 
 Window: 2026-08-08 to 2026-08-21
 
+Status: R4.0 complete; remaining R4.x adapter work deferred.
+
 Scope:
 
 - Codex user-level skill packaging.
 - Codex plugin packaging decision.
 - Claude adapter reconstruction.
 - Claude adapter commands, hooks, and subagents as adapter-only behavior.
+
+### R4.0: Codex Adapter Packaging Readiness
+
+Window: 2026-07-02
+
+Status: complete.
+
+Release: `v0.3.1-mvp`.
+
+Scope:
+
+- Public README cleanup for open-source readability.
+- Codex adapter assets covering `search`, `ingest-batch`, and `ingest-url`.
+- Codex command contract coverage for batch ingest, URL ingest, and read-only durable-page search.
+- Adapter packaging docs for repo-local mode, documented user-level skill mode, and plugin packaging boundaries.
+- Guard tests for damaged text, private local paths, stale command mappings, and core/adapter boundary drift.
+
+Non-scope:
+
+- Claude adapter reconstruction.
+- Marketplace-grade Codex plugin publication.
+- Vector search, hybrid retrieval, reranking, qmd integration, raw-source search by default, or LLM synthesis.
+
+Follow-up:
+
+- Claude adapter reconstruction remains future R4.x work.
+- Marketplace-grade plugin packaging remains future R4.x work.
 
 Exit criteria:
 
