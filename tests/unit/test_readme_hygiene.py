@@ -7,8 +7,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _readme() -> str:
+    return (ROOT / "README.md").read_text(encoding="utf-8")
+
+
 def test_readme_is_public_project_friendly() -> None:
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme = _readme()
 
     forbidden_patterns = [
         r"\b[A-Z]:[\\/]",
@@ -22,34 +26,55 @@ def test_readme_is_public_project_friendly() -> None:
     for pattern in forbidden_patterns:
         assert not re.search(pattern, readme), f"README contains local path pattern: {pattern}"
 
+    assert "[Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)" in readme
     assert "[AgriciDaniel/claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian)" in readme
+    assert "does not claim full parity with `claude-obsidian`" in readme
+
+
+def test_readme_has_readable_public_sections() -> None:
+    readme = _readme()
 
     required_sections = [
-        "## 快速开始",
-        "## 使用方式",
-        "## 命令速查",
-        "## 文档",
-        "## 当前边界",
+        "## Project Positioning",
+        "## Capabilities",
+        "## Quick Start",
+        "## Command Reference",
+        "## Artifact Layout",
+        "## Codex Adapter",
+        "## Current Boundaries",
+        "## Roadmap",
+        "## Development",
+        "## License",
     ]
     for section in required_sections:
         assert section in readme
 
 
-def test_readme_avoids_internal_status_jargon() -> None:
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+def test_readme_avoids_damaged_text_and_compatibility_anchors() -> None:
+    readme = _readme()
 
     forbidden_fragments = [
-        "canonical pattern",
-        "full `claude-obsidian` parity",
-        "preferred runtime",
-        "actual read/write/search",
-        "实际读写与搜索能力实现前",
-        "尚未实现 Obsidian CLI 的实际读写与搜索调用",
-        "D:/ai/llmWiki",
+        "Compatibility anchors",
+        "\ufffd",
+        "閿",
+        "閳",
+        "閹",
+        "閵",
+        "涔",
+        "鐞",
+        "闂",
+        "閻",
+        "妤犲矁鐦",
     ]
     for fragment in forbidden_fragments:
         assert fragment not in readme
 
-    assert "official `obsidian` CLI" in readme
-    assert "filesystem fallback" in readme
-    assert "验证通过" in readme
+
+def test_readme_documents_current_r3_3_and_v0_2_mvp_scope() -> None:
+    readme = _readme()
+
+    assert "Current release: `v0.2.0-mvp`" in readme
+    assert 'llm-wiki search <vault> "durable wiki knowledge"' in readme
+    assert "R3.3 search is read-only and searches durable Markdown wiki pages by default." in readme
+    assert "Vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred." in readme
+    assert "The official `obsidian` CLI remains optional and verified-only; filesystem fallback stays available." in readme
