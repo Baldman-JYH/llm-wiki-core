@@ -18,7 +18,7 @@ User-level skill mode is the reusable Codex skill path. R4.1 adds explicit user-
 
 ## Plugin Packaging Decision
 
-Plugin packaging is a future target. R4.1 does not publish a marketplace-grade Codex plugin.
+Plugin packaging is a future target. R4.0 does not publish a marketplace-grade Codex plugin. R4.1 does not publish a marketplace-grade Codex plugin.
 
 A future plugin may include skill metadata, command mapping docs, install guidance, and adapter verification. It must still call neutral core commands instead of redefining LLM Wiki behavior.
 
