@@ -48,9 +48,28 @@ def test_adapter_packaging_plan_documents_install_modes_and_plugin_decision() ->
 def test_capability_mapping_keeps_core_adapter_and_claude_boundaries() -> None:
     text = _read("docs/capability-mapping.md")
 
-    assert "| Capability | Layer | Current status | Codex adapter behavior | Boundary |" in text
-    assert "| Search durable wiki pages | Core | R3.3 complete | Map search triggers to `llm-wiki search` | Read-only; no raw-source search by default |" in text
-    assert "| Claude hooks and subagents | Claude adapter | Deferred | Do not generate from Codex adapter | Adapter-only; never neutral core |" in text
+    assert "| Capability | Layer | Current status | Codex adapter behavior | Boundary |" in text or "| Capability | Layer | Current status | Codex adapter behavior | Claude adapter behavior | Boundary |" in text
+
+    rows = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not (line.startswith("| ") and line.count("|") >= 5):
+            continue
+        parts = [part.strip() for part in line.split("|")[1:-1]]
+        if len(parts) >= 5:
+            rows[parts[0]] = parts
+
+    search_row = rows["Search durable wiki pages"]
+    assert search_row[1] == "Core"
+    assert search_row[2] == "R3.3 complete"
+    assert search_row[3] == "Map search triggers to `llm-wiki search`"
+    assert search_row[-1] == "Read-only; no raw-source search by default"
+
+    claude_row = rows["Claude hooks and subagents"]
+    assert claude_row[1] == "Claude adapter"
+    assert claude_row[2] == "Deferred"
+    assert claude_row[3] == "Do not generate from Codex adapter"
+    assert claude_row[-1] == "Adapter-only; never neutral core"
 
 
 def test_agent_behavioral_contract_documents_search_and_adapter_parity() -> None:
