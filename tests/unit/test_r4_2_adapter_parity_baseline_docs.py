@@ -97,10 +97,10 @@ def test_claude_adapter_readme_defines_reconstruction_boundary() -> None:
     text = _read("integrations/claude/README.md")
 
     assert "# Claude Adapter" in text
-    assert "Claude Code adapter work is future adapter work." in text
+    assert "R4.3 ships a project-local Claude adapter MVP. Advanced Claude reconstruction remains future adapter work." in text
     assert (
-        "It should reconstruct Claude-specific surfaces from the `AgriciDaniel/claude-obsidian` "
-        "reference implementation without moving those surfaces into neutral core." in text
+        "The MVP provides project-local command surfaces derived from the `AgriciDaniel/claude-obsidian` "
+        "reference implementation while keeping advanced Claude reconstruction out of neutral core." in text
     )
     assert "## Command Mapping Baseline" in text
     assert "| `/wiki` | `llm-wiki init`, `llm-wiki continue`, or a specific `/wiki` subcommand depending on vault state |" in text
@@ -119,6 +119,10 @@ def test_capability_mapping_records_r4_2_parity_layers() -> None:
         "| Claude advanced command surfaces | Claude adapter | Deferred | No Codex dependency | Hooks, subagents, `.claude-plugin`, "
         "autoresearch, canvas, hybrid retrieval, DragonScale, methodology modes, and related advanced command surfaces are deferred for future "
         "Claude reconstruction | Adapter-only; never neutral core |" in text
+    )
+    assert (
+        "| Claude advanced schema guidance | Claude adapter | Deferred | No Codex dependency | Advanced `CLAUDE.md` schema, hooks/subagents, "
+        "and `.claude-plugin` reconstruction remain future work | Adapter-only; never neutral core |" in text
     )
     assert "| Claude hooks and subagents | Claude adapter | Deferred | Do not generate from Codex adapter | Keep as future Claude-only reconstruction | Adapter-only; never neutral core |" in text
     assert "| Autoresearch | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |" in text

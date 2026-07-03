@@ -49,6 +49,22 @@ def _find_damaged_markers(text: str) -> list[str]:
     return [marker for marker in DAMAGED_TEXT_SENTINELS if marker in text]
 
 
+def test_no_tracked_scratch_or_progress_files() -> None:
+    if shutil.which("git") is None:
+        pytest.skip("Git is not available for repo hygiene check")
+
+    result = subprocess.run(
+        ["git", "-C", str(ROOT), "ls-files", ".superpowers", "codex_doc"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+
+    tracked = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    assert not tracked, f"Unexpected tracked scratch/progress files: {tracked}"
+
+
 def test_r4_3_claude_assets_exist_and_are_project_local() -> None:
     expected = [
         "integrations/claude/CLAUDE.template.md",

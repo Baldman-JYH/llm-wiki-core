@@ -1,8 +1,8 @@
 # Claude Adapter
 
-Claude Code adapter work is future adapter work.
+R4.3 ships a project-local Claude adapter MVP. Advanced Claude reconstruction remains future adapter work.
 
-It should reconstruct Claude-specific surfaces from the `AgriciDaniel/claude-obsidian` reference implementation without moving those surfaces into neutral core.
+The MVP provides project-local command surfaces derived from the `AgriciDaniel/claude-obsidian` reference implementation while keeping advanced Claude reconstruction out of neutral core.
 
 ## Role
 
