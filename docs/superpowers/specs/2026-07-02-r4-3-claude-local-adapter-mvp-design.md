@@ -234,4 +234,3 @@ The future implementation is complete when:
 - full test suite passes;
 - `git diff --check` and range-based whitespace checks pass;
 - `pyproject.toml` keeps `dependencies = []`.
-
