@@ -47,6 +47,7 @@ The portable baseline remains filesystem. The official `obsidian` CLI is optiona
 Codex adapter packaging readiness is complete for repo-local and documented user-level skill usage.
 R4.1 explicit user-level skill installation is complete for local Codex App and Codex CLI use.
 R4.2 adapter parity baseline is complete for documentation and guard tests.
+R4.3 Claude local adapter MVP is complete for project-local `/wiki` and `/save` usage.
 
 Artifact-level Codex / Claude parity is the target; byte-for-byte LLM prose parity is not.
 

@@ -25,6 +25,16 @@ CLAUDE_PUBLIC_DOCS = [
     "integrations/claude/commands/save.md",
 ]
 
+R4_3_PUBLIC_DOCS = [
+    "integrations/claude/README.md",
+    "integrations/claude/install/README.md",
+    "integrations/claude/skills/README.md",
+    "docs/claude-adapter-plan.md",
+    "docs/capability-mapping.md",
+    "docs/roadmap.md",
+    "docs/roadmap-schedule.md",
+]
+
 DAMAGED_TEXT_SENTINELS = (
     "\ufffd",
     "闂?,",
@@ -457,3 +467,58 @@ def test_claude_powershell_installer_replace_updates_only_adapter_targets(tmp_pa
     assert "Claude project adapter installed" in output
     assert "LLM Wiki Claude Project Instructions" in (destination / "CLAUDE.md").read_text(encoding="utf-8")
     assert unrelated.read_text(encoding="utf-8") == "keep"
+
+
+def test_r4_3_install_docs_describe_project_local_installation() -> None:
+    text = _read("integrations/claude/install/README.md")
+
+    assert "# Claude Adapter Install" in text
+    assert ".\\install.ps1 -InstallProjectAdapter -ProjectDestination <project> -DryRun" in text
+    assert ".\\install.ps1 -InstallProjectAdapter -ProjectDestination <project>" in text
+    assert "./install.sh --install-project-adapter --project-destination <project> --dry-run" in text
+    assert "./install.sh --install-project-adapter --project-destination <project>" in text
+    assert "-ReplaceClaudeAdapter" in text
+    assert "--replace-claude-adapter" in text
+    assert "does not edit user-global Claude settings automatically" in text
+    assert "No active hooks are installed." in text
+    assert "No subagents are installed." in text
+
+
+def test_claude_adapter_plan_records_r4_3_scope_and_deferred_boundaries() -> None:
+    text = _read("docs/claude-adapter-plan.md")
+
+    assert "# Claude Adapter Plan" in text
+    assert "R4.3 ships a local Claude adapter MVP." in text
+    assert "Claude skills are the canonical local adapter surface." in text
+    assert "`/wiki` and `/save` are thin command wrappers." in text
+    assert "Project-local installation is the default." in text
+    assert "Active Claude hooks are deferred." in text
+    assert "Claude subagents are deferred." in text
+    assert ".claude-plugin packaging is deferred." in text
+    assert "Full `claude-obsidian` parity is not claimed." in text
+
+
+def test_capability_mapping_and_roadmap_record_r4_3() -> None:
+    mapping = _read("docs/capability-mapping.md")
+    roadmap = _read("docs/roadmap.md")
+    schedule = _read("docs/roadmap-schedule.md")
+
+    assert "| Claude local adapter MVP | Claude adapter | R4.3 complete | No Codex dependency | Project-local skill and thin `/wiki` `/save` wrappers | Adapter-only; no hooks or subagents |" in mapping
+    assert "R4.3 Claude local adapter MVP is complete for project-local `/wiki` and `/save` usage." in roadmap
+    assert "### R4.3: Claude Local Adapter MVP" in schedule
+    assert "Status: complete." in schedule
+    assert "Project-local `CLAUDE.template.md`." in schedule
+    assert "Project-local Claude `llm-wiki` skill." in schedule
+    assert "Thin `/wiki` and `/save` wrappers." in schedule
+    assert "No active hooks, subagents, `.claude-plugin`, or advanced `claude-obsidian` features." in schedule
+
+
+def test_r4_3_public_docs_have_no_private_paths_or_damaged_text() -> None:
+    damaged = ["\ufffd", "闂?,", "濞?,", "闁?,", "闂?,", "婵°倗濮撮惌渚€鎯?"]
+    private_path_patterns = [r"\b[A-Z]:[\\/]", "D:" + "/", "D:" + "\\\\", "C:" + "/", "C:" + "\\\\"]
+
+    for relative in R4_3_PUBLIC_DOCS:
+        text = _read(relative)
+        assert not [marker for marker in damaged if marker in text], relative
+        for pattern in private_path_patterns:
+            assert not re.search(pattern, text), f"{relative} contains {pattern}"

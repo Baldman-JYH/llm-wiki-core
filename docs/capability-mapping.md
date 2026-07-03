@@ -18,6 +18,7 @@ This document maps LLM Wiki capabilities to neutral core, Codex adapter, Claude 
 | Codex user-level skill | Codex adapter | R4.1 complete | Provide explicit user-level skill install helpers | No Claude dependency | Opt-in only; does not mutate global config automatically |
 | Codex plugin package | Codex adapter | Deferred | Keep as future target | No Claude dependency | Not marketplace-ready through R4.2 |
 | Claude schema guidance | Claude adapter | Planned after R4.2 | No Codex dependency | Future `CLAUDE.md` or equivalent schema guidance | Adapter-only |
+| Claude local adapter MVP | Claude adapter | R4.3 complete | No Codex dependency | Project-local skill and thin `/wiki` `/save` wrappers | Adapter-only; no hooks or subagents |
 | Claude slash commands | Claude adapter | Planned after R4.2 | No Codex dependency | Wrap `/wiki` and `/save` around neutral commands | Adapter-only |
 | Claude hooks and subagents | Claude adapter | Deferred | Do not generate from Codex adapter | Keep as future Claude-only reconstruction | Adapter-only; never neutral core |
 | Autoresearch | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |

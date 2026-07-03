@@ -171,7 +171,7 @@ Follow-up:
 
 Window: 2026-08-08 to 2026-08-21
 
-Status: R4.2 complete; remaining R4.x adapter implementation work deferred.
+Status: R4.3 complete; remaining R4.x advanced adapter work deferred.
 
 Scope:
 
@@ -275,6 +275,38 @@ Non-scope:
 Exit criteria:
 
 - Adapter parity claims are public, tested, and limited to artifact-level parity.
+
+### R4.3: Claude Local Adapter MVP
+
+Window: 2026-07-02
+
+Status: complete.
+
+Scope:
+
+- Project-local `CLAUDE.template.md`.
+- Project-local Claude `llm-wiki` skill.
+- Thin `/wiki` and `/save` wrappers.
+- PowerShell and POSIX project-local install scripts.
+- No active hooks, subagents, `.claude-plugin`, or advanced `claude-obsidian` features.
+
+Completed outcome:
+
+- Claude Code users can install project-local adapter assets.
+- `/wiki` and `/save` intent maps to neutral `llm-wiki` commands.
+- User-global Claude settings are not edited automatically.
+- No active hooks, subagents, `.claude-plugin`, or advanced `claude-obsidian` features are shipped.
+
+Non-scope:
+
+- Active Claude hooks.
+- Claude subagents.
+- `.claude-plugin` packaging.
+- Autoresearch, canvas, hybrid retrieval, DragonScale, methodology modes, and automatic Git commits.
+
+Exit criteria:
+
+- Claude local adapter assets are public, tested, project-local, and limited to artifact-level parity.
 
 ## R5: Knowledge Organization
 
