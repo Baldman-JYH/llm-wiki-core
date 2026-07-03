@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+import os
 import shutil
 import subprocess
 
@@ -88,6 +89,85 @@ def test_claude_template_documents_llm_wiki_rules() -> None:
     assert "Artifact-level parity is required." in text
     assert "Byte-for-byte prose parity is not required." in text
     assert "Do not claim full `claude-obsidian` parity." in text
+
+
+def test_claude_shell_installer_documents_project_local_flags() -> None:
+    text = _read("integrations/claude/install/install.sh")
+
+    assert "--install-project-adapter" in text
+    assert "--project-destination" in text
+    assert "--replace-claude-adapter" in text
+    assert ".claude/skills/llm-wiki" in text
+    assert ".claude/commands" in text
+
+
+def test_claude_shell_installer_dry_run_does_not_write_destination(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.sh"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-project-adapter",
+            "--project-destination",
+            str(destination),
+            "--dry-run",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "DRY RUN" in output
+    assert "Install Claude project adapter" in output
+    assert not (destination / "CLAUDE.md").exists()
+    assert not (destination / ".claude").exists()
+
+
+def test_claude_shell_installer_copies_project_adapter(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.sh"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-project-adapter",
+            "--project-destination",
+            str(destination),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "Claude project adapter installed" in output
+    assert (destination / "CLAUDE.md").exists()
+    assert (destination / ".claude" / "skills" / "llm-wiki" / "SKILL.md").exists()
+    assert (destination / ".claude" / "commands" / "wiki.md").exists()
+    assert (destination / ".claude" / "commands" / "save.md").exists()
+    assert not (destination / ".claude" / "settings.json").exists()
 
 
 def test_claude_command_wrappers_are_thin() -> None:
