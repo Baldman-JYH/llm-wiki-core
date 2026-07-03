@@ -115,7 +115,11 @@ def test_capability_mapping_records_r4_2_parity_layers() -> None:
 
     assert "| Capability | Layer | Current status | Codex adapter behavior | Claude adapter behavior | Boundary |" in text
     assert "| Adapter parity baseline | Docs + tests | R4.2 complete | Natural-language triggers map to neutral commands | Slash-command intent maps to neutral commands | Artifact-level parity; no byte-for-byte parity |" in text
-    assert "| Claude slash commands | Claude adapter | Planned after R4.2 | No Codex dependency | Wrap `/wiki` and `/save` around neutral commands | Adapter-only |" in text
+    assert (
+        "| Claude advanced command surfaces | Claude adapter | Deferred | No Codex dependency | Hooks, subagents, `.claude-plugin`, "
+        "autoresearch, canvas, hybrid retrieval, DragonScale, methodology modes, and related advanced command surfaces are deferred for future "
+        "Claude reconstruction | Adapter-only; never neutral core |" in text
+    )
     assert "| Claude hooks and subagents | Claude adapter | Deferred | Do not generate from Codex adapter | Keep as future Claude-only reconstruction | Adapter-only; never neutral core |" in text
     assert "| Autoresearch | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |" in text
     assert "| Canvas workflows | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |" in text

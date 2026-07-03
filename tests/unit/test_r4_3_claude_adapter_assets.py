@@ -504,13 +504,30 @@ def test_capability_mapping_and_roadmap_record_r4_3() -> None:
     schedule = _read("docs/roadmap-schedule.md")
 
     assert "| Claude local adapter MVP | Claude adapter | R4.3 complete | No Codex dependency | Project-local skill and thin `/wiki` `/save` wrappers | Adapter-only; no hooks or subagents |" in mapping
+    assert (
+        "| Claude advanced command surfaces | Claude adapter | Deferred | No Codex dependency | Hooks, subagents, `.claude-plugin`, autoresearch, canvas, "
+        "hybrid retrieval, DragonScale, methodology modes, and related advanced command surfaces are deferred for future Claude reconstruction | Adapter-only; never neutral core |"
+        in mapping
+    )
     assert "R4.3 Claude local adapter MVP is complete for project-local `/wiki` and `/save` usage." in roadmap
     assert "### R4.3: Claude Local Adapter MVP" in schedule
     assert "Status: complete." in schedule
     assert "Project-local `CLAUDE.template.md`." in schedule
     assert "Project-local Claude `llm-wiki` skill." in schedule
     assert "Thin `/wiki` and `/save` wrappers." in schedule
-    assert "No active hooks, subagents, `.claude-plugin`, or advanced `claude-obsidian` features." in schedule
+    assert "No active hooks, subagents, `.claude-plugin`, or advanced `claude-obsidian` features are shipped." in schedule
+    assert (
+        "- Advanced `claude-obsidian` feature parity." in schedule
+        and "- Active Claude hooks." in schedule
+        and "- Claude subagents." in schedule
+        and "- `.claude-plugin` packaging." in schedule
+        and "- Autoresearch." in schedule
+        and "- Canvas workflows." in schedule
+        and "- Hybrid retrieval." in schedule
+        and "- DragonScale or log-folding memory." in schedule
+        and "- Methodology modes." in schedule
+        and "- Automatic Git commits." in schedule
+    )
 
 
 def test_r4_3_public_docs_have_no_private_paths_or_damaged_text() -> None:

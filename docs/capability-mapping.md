@@ -19,7 +19,7 @@ This document maps LLM Wiki capabilities to neutral core, Codex adapter, Claude 
 | Codex plugin package | Codex adapter | Deferred | Keep as future target | No Claude dependency | Not marketplace-ready through R4.2 |
 | Claude schema guidance | Claude adapter | Planned after R4.2 | No Codex dependency | Future `CLAUDE.md` or equivalent schema guidance | Adapter-only |
 | Claude local adapter MVP | Claude adapter | R4.3 complete | No Codex dependency | Project-local skill and thin `/wiki` `/save` wrappers | Adapter-only; no hooks or subagents |
-| Claude slash commands | Claude adapter | Planned after R4.2 | No Codex dependency | Wrap `/wiki` and `/save` around neutral commands | Adapter-only |
+| Claude advanced command surfaces | Claude adapter | Deferred | No Codex dependency | Hooks, subagents, `.claude-plugin`, autoresearch, canvas, hybrid retrieval, DragonScale, methodology modes, and related advanced command surfaces are deferred for future Claude reconstruction | Adapter-only; never neutral core |
 | Claude hooks and subagents | Claude adapter | Deferred | Do not generate from Codex adapter | Keep as future Claude-only reconstruction | Adapter-only; never neutral core |
 | Autoresearch | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |
 | Canvas workflows | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |

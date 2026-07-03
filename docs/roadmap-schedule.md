@@ -288,7 +288,6 @@ Scope:
 - Project-local Claude `llm-wiki` skill.
 - Thin `/wiki` and `/save` wrappers.
 - PowerShell and POSIX project-local install scripts.
-- No active hooks, subagents, `.claude-plugin`, or advanced `claude-obsidian` features.
 
 Completed outcome:
 
@@ -299,10 +298,16 @@ Completed outcome:
 
 Non-scope:
 
+- Advanced `claude-obsidian` feature parity.
 - Active Claude hooks.
 - Claude subagents.
 - `.claude-plugin` packaging.
-- Autoresearch, canvas, hybrid retrieval, DragonScale, methodology modes, and automatic Git commits.
+- Autoresearch.
+- Canvas workflows.
+- Hybrid retrieval.
+- DragonScale or log-folding memory.
+- Methodology modes.
+- Automatic Git commits.
 
 Exit criteria:
 
