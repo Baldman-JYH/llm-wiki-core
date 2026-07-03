@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+import shutil
+import subprocess
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -149,3 +153,154 @@ def test_r4_3_public_docs_have_no_private_paths_or_damaged_text() -> None:
         assert not _find_damaged_markers(text), relative
         for pattern in private_path_patterns:
             assert not re.search(pattern, text), f"{relative} contains {pattern}"
+
+
+def _powershell() -> str | None:
+    return shutil.which("pwsh") or shutil.which("powershell")
+
+
+def test_claude_powershell_installer_dry_run_does_not_write_destination(tmp_path) -> None:
+    shell = _powershell()
+    if shell is None:
+        pytest.skip("PowerShell executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.ps1"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+
+    result = subprocess.run(
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-InstallProjectAdapter",
+            "-ProjectDestination",
+            str(destination),
+            "-DryRun",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "DRY RUN" in output
+    assert "Install Claude project adapter" in output
+    assert "CLAUDE.md" in output
+    assert ".claude" in output
+    assert not (destination / "CLAUDE.md").exists()
+    assert not (destination / ".claude").exists()
+
+
+def test_claude_powershell_installer_copies_project_adapter(tmp_path) -> None:
+    shell = _powershell()
+    if shell is None:
+        pytest.skip("PowerShell executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.ps1"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+
+    result = subprocess.run(
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-InstallProjectAdapter",
+            "-ProjectDestination",
+            str(destination),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "Claude project adapter installed" in output
+    assert (destination / "CLAUDE.md").exists()
+    assert (destination / ".claude" / "skills" / "llm-wiki" / "SKILL.md").exists()
+    assert (destination / ".claude" / "commands" / "wiki.md").exists()
+    assert (destination / ".claude" / "commands" / "save.md").exists()
+    assert not (destination / ".claude" / "settings.json").exists()
+    assert "name: llm-wiki" in (destination / ".claude" / "skills" / "llm-wiki" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_claude_powershell_installer_refuses_different_existing_files_without_replace(tmp_path) -> None:
+    shell = _powershell()
+    if shell is None:
+        pytest.skip("PowerShell executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.ps1"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+    (destination / "CLAUDE.md").write_text("existing", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-InstallProjectAdapter",
+            "-ProjectDestination",
+            str(destination),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "already exists and differs" in output
+    assert "ReplaceClaudeAdapter" in output
+    assert (destination / "CLAUDE.md").read_text(encoding="utf-8") == "existing"
+
+
+def test_claude_powershell_installer_replace_updates_only_adapter_targets(tmp_path) -> None:
+    shell = _powershell()
+    if shell is None:
+        pytest.skip("PowerShell executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.ps1"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+    (destination / "CLAUDE.md").write_text("existing", encoding="utf-8")
+    unrelated = destination / "notes.md"
+    unrelated.write_text("keep", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script),
+            "-InstallProjectAdapter",
+            "-ProjectDestination",
+            str(destination),
+            "-ReplaceClaudeAdapter",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "Claude project adapter installed" in output
+    assert "LLM Wiki Claude Project Instructions" in (destination / "CLAUDE.md").read_text(encoding="utf-8")
+    assert unrelated.read_text(encoding="utf-8") == "keep"
