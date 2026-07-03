@@ -170,6 +170,79 @@ def test_claude_shell_installer_copies_project_adapter(tmp_path) -> None:
     assert not (destination / ".claude" / "settings.json").exists()
 
 
+def test_claude_shell_installer_refuses_different_existing_claude_md_without_replace(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.sh"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+    (destination / "CLAUDE.md").write_text("conflicting-contents", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-project-adapter",
+            "--project-destination",
+            str(destination),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "--replace-claude-adapter" in output
+    assert (destination / "CLAUDE.md").read_text(encoding="utf-8") == "conflicting-contents"
+    assert not (destination / ".claude").exists()
+
+
+def test_claude_shell_installer_replaces_only_adapter_targets_with_flag(tmp_path) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX shell execution is checked on non-Windows platforms")
+
+    shell = shutil.which("sh")
+    if shell is None:
+        pytest.skip("POSIX sh executable is not available")
+
+    script = ROOT / "integrations" / "claude" / "install" / "install.sh"
+    destination = tmp_path / "target-project"
+    destination.mkdir()
+    (destination / "CLAUDE.md").write_text("conflicting-contents", encoding="utf-8")
+    notes = destination / "notes.md"
+    notes.write_text("notes-kept", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            shell,
+            str(script),
+            "--install-project-adapter",
+            "--project-destination",
+            str(destination),
+            "--replace-claude-adapter",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "Claude project adapter installed" in output
+    assert "LLM Wiki Claude Project Instructions" in (destination / "CLAUDE.md").read_text(encoding="utf-8")
+    assert (destination / ".claude" / "skills" / "llm-wiki" / "SKILL.md").exists()
+    assert (destination / ".claude" / "commands" / "wiki.md").exists()
+    assert (destination / ".claude" / "commands" / "save.md").exists()
+    assert notes.read_text(encoding="utf-8") == "notes-kept"
+    assert not (destination / ".claude" / "settings.json").exists()
+
+
 def test_claude_command_wrappers_are_thin() -> None:
     wiki = _read("integrations/claude/commands/wiki.md")
     save = _read("integrations/claude/commands/save.md")
