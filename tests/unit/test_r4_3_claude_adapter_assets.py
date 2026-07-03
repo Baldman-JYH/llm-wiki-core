@@ -528,6 +528,7 @@ def test_capability_mapping_and_roadmap_record_r4_3() -> None:
     assert "R4.3 Claude local adapter MVP is complete for project-local `/wiki` and `/save` usage." in roadmap
     assert "### R4.3: Claude Local Adapter MVP" in schedule
     assert "Status: complete." in schedule
+    assert "Release: `v0.4.3-mvp`." in schedule
     assert "Project-local `CLAUDE.template.md`." in schedule
     assert "Project-local Claude `llm-wiki` skill." in schedule
     assert "Thin `/wiki` and `/save` wrappers." in schedule

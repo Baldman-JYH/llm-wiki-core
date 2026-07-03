@@ -282,6 +282,8 @@ Window: 2026-07-02
 
 Status: complete.
 
+Release: `v0.4.3-mvp`.
+
 Scope:
 
 - Project-local `CLAUDE.template.md`.

@@ -70,13 +70,14 @@ def test_readme_avoids_damaged_text_and_compatibility_anchors() -> None:
         assert fragment not in readme
 
 
-def test_readme_documents_current_r4_1_and_v0_4_0_mvp_scope() -> None:
+def test_readme_documents_current_r4_3_and_v0_4_3_mvp_scope() -> None:
     readme = _readme()
 
-    assert "Current release: `v0.4.0-mvp`" in readme
-    assert "Current status: R4.1 publishes explicit Codex user-level skill installation on top of R4.0 adapter packaging readiness." in readme
+    assert "Current release: `v0.4.3-mvp`" in readme
+    assert "Current status: R4.3 ships a project-local Claude adapter MVP on top of the existing neutral core and Codex adapter path." in readme
     assert 'llm-wiki search <vault> "durable wiki knowledge"' in readme
     assert "R3.3 search is read-only and searches durable Markdown wiki pages by default." in readme
     assert "Codex user-level skill installation is explicit and does not edit global Codex configuration automatically." in readme
+    assert "Claude project-local adapter installation is explicit and does not edit user-global Claude settings automatically." in readme
     assert "Vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred." in readme
     assert "The official `obsidian` CLI remains optional and verified-only; filesystem fallback stays available." in readme

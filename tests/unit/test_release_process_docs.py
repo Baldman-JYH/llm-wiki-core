@@ -32,7 +32,9 @@ def test_archive_manifest_defines_release_artifact_policy() -> None:
 
     required_terms = [
         "llm-wiki-core-v0.1.0-mvp.zip",
+        "llm-wiki-core-v0.4.3-mvp.zip",
         "v0.1.0-mvp",
+        "v0.4.3-mvp",
         "git archive",
         "SHA256",
         "exclude .git",
@@ -66,6 +68,7 @@ def test_readme_links_release_process_docs() -> None:
 
     assert "docs/release-notes-v0.1.0-mvp.md" in readme
     assert "docs/release-notes-v0.4.0-mvp.md" in readme
+    assert "docs/release-notes-v0.4.3-mvp.md" in readme
     assert "docs/archive-manifest.md" in readme
     assert "docs/roadmap-schedule.md" in readme
 
@@ -84,6 +87,29 @@ def test_r4_1_release_notes_capture_user_skill_install_boundary() -> None:
         "Claude adapter reconstruction remains deferred",
         "25 passed, 6 skipped",
         "221 passed, 6 skipped",
+    ]
+    for term in required_terms:
+        assert term in notes
+
+
+def test_r4_3_release_notes_capture_claude_local_adapter_boundary() -> None:
+    notes = _read("docs/release-notes-v0.4.3-mvp.md")
+
+    required_terms = [
+        "v0.4.3-mvp",
+        "R4.3 Claude Local Adapter MVP",
+        "project-local Claude adapter assets",
+        "CLAUDE.template.md",
+        "skills/llm-wiki/SKILL.md",
+        "commands/wiki.md",
+        "commands/save.md",
+        "install.ps1",
+        "install.sh",
+        "does not edit user-global Claude settings automatically",
+        "active Claude hooks remain deferred",
+        "Claude subagents remain deferred",
+        ".claude-plugin packaging remains deferred",
+        "248 passed, 10 skipped",
     ]
     for term in required_terms:
         assert term in notes
