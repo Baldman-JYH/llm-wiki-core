@@ -330,3 +330,29 @@ Scope:
 Exit criteria:
 
 - Organization modes remain optional and do not become first-use prerequisites.
+
+### R5.0: Knowledge Organization Foundation
+
+Window: 2026-07-07
+
+Status: complete.
+
+Scope:
+
+- Explicit `generic` organization definition.
+- Shared scaffold and frontmatter helpers.
+- `init` support for explicit `--organization generic`.
+- Lint required paths sourced from the organization contract.
+- Public documentation and guard tests for foundation-only support.
+
+Completed outcome:
+
+- `generic` remains the default organization mode.
+- Organization modes are optional extensions.
+- The core has a neutral extension point for future LYT, PARA, Zettelkasten, comparison workflows, DragonScale, and advanced lint.
+
+Non-scope:
+
+- Full LYT, PARA, Zettelkasten, DragonScale, and semantic stale-claim lint remain future R5.x work.
+- No existing vault migration is provided in R5.0.
+- No adapter claims advanced methodology support in R5.0.

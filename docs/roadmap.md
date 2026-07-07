@@ -59,11 +59,14 @@ Remaining adapter work:
 
 ## Knowledge Organization Roadmap
 
-- Methodology modes.
+R5.0 knowledge organization foundation is complete. generic remains the default organization mode.
+
+Future R5.x work:
+
 - LYT / PARA / Zettelkasten templates.
-- comparison page workflows.
+- Comparison page workflows.
 - DragonScale or log-folding memory extension.
-- advanced lint for semantic tiling and stale claims.
+- Advanced lint for semantic tiling and stale claims.
 
 ## Out-Of-Scope Unless Reapproved
 

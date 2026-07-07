@@ -24,5 +24,6 @@ This document maps LLM Wiki capabilities to neutral core, Codex adapter, Claude 
 | Autoresearch | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |
 | Canvas workflows | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |
 | Vector or hybrid retrieval | Deferred extension | Deferred | Do not claim support | Do not claim support | Future retrieval design |
+| Knowledge organization foundation | Core | R5.0 complete | Expose `generic` as the default organization mode | Expose `generic` as the default organization mode | Foundation only; optional methodology modes remain deferred |
 | DragonScale or log-folding memory | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |
 | Methodology modes | Deferred extension | Deferred | Do not claim support | Do not claim support | Separate design required |
