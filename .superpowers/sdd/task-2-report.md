@@ -72,3 +72,59 @@
 
 ### 疑虑
 - brief 希望完全移除剩余私有 seed helper，但 `tests/unit/test_organization_foundation.py` 当前仍直接依赖这些符号，且不在本任务授权写入范围内。为同时满足“仅修改本任务拥有文件”和“Task 2 指定测试需通过”，本次保留了兼容包装层；后续若要彻底删除，需要在拥有 `tests/unit/test_organization_foundation.py` 写权限的任务中一并迁移测试。
+
+## 进展更新 3：review-fix RED
+
+### 修复内容
+- 将 `tests/unit/test_organization_foundation.py` 中 generic seed characterization 改为基于 `init_vault(tmp_path, purpose=...)` 的实际落盘文件比较。
+- 新增 frontmatter 动态时间归一化，避免 `created/updated` 时间戳导致伪失败。
+- 新增 reviewer regression test：`test_init_module_no_longer_exposes_seed_page_compat_helpers`，直接约束 `llm_wiki_core.operations.init` 不再暴露 `_index_page/_log_page/_hot_page/_overview_page/_sub_index_page`。
+
+### 测试命令和结果
+- 命令：`python -m pytest tests/unit/test_organization_foundation.py -q`
+- 结果：失败，符合 reviewer-fix RED 预期。
+
+### RED/GREEN 证据
+- RED：
+  - `FAILED tests/unit/test_organization_foundation.py::test_init_module_no_longer_exposes_seed_page_compat_helpers`
+  - `AssertionError: assert not True`
+  - `hasattr(..., '_index_page')`
+- GREEN：待删除 helper 后补充。
+
+### 文件列表
+- `tests/unit/test_organization_foundation.py`
+- `.superpowers/sdd/task-2-report.md`
+
+### 自审结果
+- 新测试不再依赖 `operations.init` 私有实现细节，只验证初始化产物与 scaffold 定义一致。
+- Task 1 的 lint spy contract test 与 immutable routes test 未改动。
+
+### 疑虑
+- 当前 report 既有内容编码表现异常，但本次追加内容按 UTF-8 写入；不额外触碰历史段落，避免扩大改动面。
+
+## 进展更新 4：review-fix GREEN
+
+### 修复内容
+- 从 `llm_wiki_core/operations/init.py` 删除 `_index_page/_log_page/_hot_page/_overview_page/_sub_index_page` 兼容包装层。
+- `tests/unit/test_organization_foundation.py` 已改为通过 `init_vault` 的真实落盘结果对比 `get_organization_definition("generic").seed_pages` 渲染产物，并保留 Task 1 的 lint spy contract test 与 immutable routes test。
+
+### 测试命令和结果
+- 命令：`python -m pytest tests/unit/test_organization_foundation.py tests/unit/test_init_operation.py -q`
+- 结果：`18 passed in 2.48s`
+
+### RED/GREEN 证据
+- RED：`AssertionError: assert not True`（helper 仍暴露时）
+- GREEN：`18 passed in 2.48s`
+
+### 文件列表
+- `llm_wiki_core/operations/init.py`
+- `tests/unit/test_organization_foundation.py`
+- `.superpowers/sdd/task-2-report.md`
+
+### 自审结果
+- 改动仅落在任务授权的文件范围内。
+- seed page 构造现在只由 `vault.scaffold` 提供，`operations.init` 不再保留重复包装层。
+- 测试覆盖了 reviewer finding、本地实际初始化结果与既有 Task 1 契约。
+
+### 疑虑
+- `task-2-report.md` 既有段落存在历史编码异常；本次仅继续以 UTF-8 追加，未清洗旧内容。

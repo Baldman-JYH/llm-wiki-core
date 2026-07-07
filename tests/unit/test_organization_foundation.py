@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 
 
@@ -55,34 +57,51 @@ def test_generic_organization_definition_matches_mvp_structure() -> None:
     }.issubset(seed_paths)
 
 
-def test_generic_seed_pages_render_match_current_init_contract() -> None:
-    from llm_wiki_core.operations.init import (
-        _hot_page,
-        _index_page,
-        _log_page,
-        _overview_page,
-        _sub_index_page,
-    )
+def _normalize_dynamic_frontmatter(text: str) -> str:
+    normalized = re.sub(r"^created: .*$", "created: <dynamic>", text, flags=re.MULTILINE)
+    return re.sub(r"^updated: .*$", "updated: <dynamic>", normalized, flags=re.MULTILINE)
+
+
+def test_generic_seed_pages_render_match_init_vault_outputs(tmp_path) -> None:
+    from llm_wiki_core.operations.init import init_vault
     from llm_wiki_core.vault.scaffold import get_organization_definition
 
-    date = "2026-07-07"
-    timestamp = "2026-07-07T08:09:10+08:00"
     purpose = "Map an example codebase"
+    init_vault(tmp_path, purpose=purpose)
+
     definition = get_organization_definition("generic")
-
-    rendered = {
-        page.relative_path: page.render(created=date, updated=timestamp, purpose=purpose)
-        for page in definition.seed_pages
+    actual_pages = {
+        "wiki/index.md": (tmp_path / "wiki" / "index.md").read_text(encoding="utf-8"),
+        "wiki/log.md": (tmp_path / "wiki" / "log.md").read_text(encoding="utf-8"),
+        "wiki/hot.md": (tmp_path / "wiki" / "hot.md").read_text(encoding="utf-8"),
+        "wiki/overview.md": (tmp_path / "wiki" / "overview.md").read_text(encoding="utf-8"),
+        "wiki/entities/_index.md": (tmp_path / "wiki" / "entities" / "_index.md").read_text(encoding="utf-8"),
+        "wiki/concepts/_index.md": (tmp_path / "wiki" / "concepts" / "_index.md").read_text(encoding="utf-8"),
     }
 
-    assert rendered == {
-        "wiki/index.md": _index_page(date, timestamp),
-        "wiki/log.md": _log_page(date, timestamp),
-        "wiki/hot.md": _hot_page(date, timestamp),
-        "wiki/overview.md": _overview_page(date, timestamp, purpose),
-        "wiki/entities/_index.md": _sub_index_page("Entities Index", date, timestamp),
-        "wiki/concepts/_index.md": _sub_index_page("Concepts Index", date, timestamp),
-    }
+    for relative_path, actual_text in actual_pages.items():
+        page = next(page for page in definition.seed_pages if page.relative_path == relative_path)
+        expected_text = page.render(
+            created="2026-07-07",
+            updated="2026-07-07T08:09:10+08:00",
+            purpose=purpose,
+        )
+        assert _normalize_dynamic_frontmatter(actual_text) == _normalize_dynamic_frontmatter(
+            expected_text
+        )
+
+
+def test_init_module_no_longer_exposes_seed_page_compat_helpers() -> None:
+    from llm_wiki_core.operations import init as init_module
+
+    for helper_name in (
+        "_index_page",
+        "_log_page",
+        "_hot_page",
+        "_overview_page",
+        "_sub_index_page",
+    ):
+        assert not hasattr(init_module, helper_name)
 
 
 def test_required_paths_for_generic_organization_match_current_lint_contract() -> None:

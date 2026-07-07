@@ -116,39 +116,6 @@ def _write_text_if_missing(
 def _relative_path(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
 
-def _index_page(date: str, timestamp: str) -> str:
-    definition = get_organization_definition("generic")
-    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/index.md")
-    return page.render(created=date, updated=timestamp, purpose="")
-
-
-def _log_page(date: str, timestamp: str) -> str:
-    definition = get_organization_definition("generic")
-    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/log.md")
-    return page.render(created=date, updated=timestamp, purpose="")
-
-
-def _hot_page(date: str, timestamp: str) -> str:
-    definition = get_organization_definition("generic")
-    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/hot.md")
-    return page.render(created=date, updated=timestamp, purpose="")
-
-
-def _overview_page(date: str, timestamp: str, purpose: str) -> str:
-    definition = get_organization_definition("generic")
-    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/overview.md")
-    return page.render(created=date, updated=timestamp, purpose=purpose)
-
-
-def _sub_index_page(title: str, date: str, timestamp: str) -> str:
-    relative_path = {
-        "Entities Index": "wiki/entities/_index.md",
-        "Concepts Index": "wiki/concepts/_index.md",
-    }[title]
-    definition = get_organization_definition("generic")
-    page = next(page for page in definition.seed_pages if page.relative_path == relative_path)
-    return page.render(created=date, updated=timestamp, purpose="")
-
 
 def _agents_page(purpose: str) -> str:
     return (
