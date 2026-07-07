@@ -293,3 +293,53 @@ def test_cli_ingest_prints_summary(tmp_path, capsys) -> None:
     output = capsys.readouterr().out
     assert "ingest success" in output
     assert "source: .raw/articles/example.md" in output
+
+
+def test_ingest_source_page_path_comes_from_organization_route(tmp_path, monkeypatch) -> None:
+    from dataclasses import replace
+    from types import MappingProxyType
+
+    import llm_wiki_core.vault.routes as routes_module
+    from llm_wiki_core.operations.ingest import ingest_source
+    from llm_wiki_core.vault.scaffold import get_organization_definition
+
+    base = get_organization_definition("generic")
+    routed = replace(
+        base,
+        page_type_routes=MappingProxyType({**base.page_type_routes, "source": "wiki/routed-sources"}),
+    )
+    monkeypatch.setattr(routes_module, "get_organization_definition", lambda _name="generic": routed)
+
+    class SpyTransport:
+        def __init__(self) -> None:
+            self.write_calls: list[tuple[str, str]] = []
+            self.files = {
+                ".raw/articles/example.md": "Example source body.",
+                ".raw/.manifest.json": '{"schema_version": 1, "updated": "", "sources": {}}\n',
+                "wiki/index.md": "# Wiki Index\n\n## Sources\n",
+                "wiki/log.md": "# Operation Log\n\n",
+                "wiki/hot.md": "# Recent Context\n",
+            }
+
+        def exists(self, relative_path: str) -> bool:
+            return relative_path in self.files
+
+        def read_text(self, relative_path: str) -> str:
+            return self.files[relative_path]
+
+        def write_text(self, relative_path: str, content: str) -> str:
+            self.write_calls.append((relative_path, content))
+            self.files[relative_path] = content
+            return relative_path
+
+    transport = SpyTransport()
+
+    result = ingest_source(tmp_path, ".raw/articles/example.md", transport=transport)
+
+    written_paths = [path for path, _content in transport.write_calls]
+    assert result.files_created == ["wiki/routed-sources/Example.md"]
+    assert "wiki/routed-sources/Example.md" in written_paths
+    manifest = json.loads(transport.files[".raw/.manifest.json"])
+    assert manifest["sources"]["articles/example.md"]["generated_pages"] == [
+        "wiki/routed-sources/Example.md"
+    ]

@@ -10,6 +10,7 @@ from llm_wiki_core.operations.ingest import (
     _title_from_source_path,
     ingest_source,
 )
+from llm_wiki_core.vault.routes import page_path_for_title
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
@@ -152,7 +153,7 @@ def _is_missing_error(error: Exception) -> bool:
 
 def _target_source_page(source_path: str) -> str:
     title = _title_from_source_path(_normalize_source_path(source_path))
-    return (Path("wiki") / "sources" / f"{title}.md").as_posix()
+    return page_path_for_title("source", title)
 
 
 def _find_manifest_conflicting_source(transport: object, source_path: str, target_page: str) -> str | None:

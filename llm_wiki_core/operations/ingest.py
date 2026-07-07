@@ -7,6 +7,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from llm_wiki_core.vault.routes import page_path_for_title
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
@@ -44,8 +45,7 @@ def ingest_source(
     manifest = _load_manifest(active_transport)
     source_key = raw_path[len(".raw/") :]
     title = _validate_source_title(source_title) if source_title is not None else _title_from_source_path(raw_relative)
-    source_page_relative = Path("wiki") / "sources" / f"{title}.md"
-    source_page_path = source_page_relative.as_posix()
+    source_page_path = page_path_for_title("source", title)
 
     existing_record = manifest["sources"].get(source_key)
     if existing_record and existing_record.get("content_fingerprint") == fingerprint and not force:

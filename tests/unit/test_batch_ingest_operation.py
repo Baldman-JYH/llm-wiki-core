@@ -274,3 +274,31 @@ def test_ingest_batch_captures_per_file_failure_and_continues(tmp_path) -> None:
     assert failed.error_type == "ValueError"
     assert failed.error_message == "cannot read source"
     assert "wiki/sources/Ok.md" in transport.files
+
+
+def test_ingest_batch_conflict_prediction_uses_organization_source_route(tmp_path, monkeypatch) -> None:
+    from dataclasses import replace
+    from types import MappingProxyType
+
+    import llm_wiki_core.vault.routes as routes_module
+    from llm_wiki_core.operations.ingest_batch import ingest_batch
+    from llm_wiki_core.vault.scaffold import get_organization_definition
+
+    base = get_organization_definition("generic")
+    routed = replace(
+        base,
+        page_type_routes=MappingProxyType({**base.page_type_routes, "source": "wiki/routed-sources"}),
+    )
+    monkeypatch.setattr(routes_module, "get_organization_definition", lambda _name="generic": routed)
+
+    _init_batch_vault(tmp_path)
+    _write_raw(tmp_path, "a/report.md", "# First Report\n\nAlpha source.")
+    _write_raw(tmp_path, "b/report.md", "# Second Report\n\nBeta source.")
+
+    result = ingest_batch(tmp_path, ".raw")
+
+    assert result.status == "partial"
+    assert result.succeeded == 1
+    assert result.failed == 1
+    assert "wiki/routed-sources/Report.md" in (result.items[1].error_message or "")
+    assert (tmp_path / "wiki" / "routed-sources" / "Report.md").is_file()
