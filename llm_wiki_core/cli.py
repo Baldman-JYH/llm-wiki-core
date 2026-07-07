@@ -35,6 +35,11 @@ def build_parser() -> argparse.ArgumentParser:
     init_parser = subparsers.add_parser("init", help="Initialize an LLM Wiki vault.")
     init_parser.add_argument("vault", help="Path to the vault root.")
     init_parser.add_argument("--purpose", required=True, help="One-sentence vault purpose.")
+    init_parser.add_argument(
+        "--organization",
+        default="generic",
+        help="Organization mode to use. R5.0 supports generic.",
+    )
     _add_json_option(init_parser)
 
     transport_parser = subparsers.add_parser(
@@ -127,7 +132,12 @@ def main(argv: list[str] | None = None) -> int:
 
 def _execute(args: argparse.Namespace) -> object | None:
     if args.command == "init":
-        return init_vault(args.vault, purpose=args.purpose, adapter="codex")
+        return init_vault(
+            args.vault,
+            purpose=args.purpose,
+            adapter="codex",
+            organization=args.organization,
+        )
 
     if args.command == "detect-transport":
         return detect_transport(args.vault, force=args.force)

@@ -90,3 +90,77 @@ def test_cli_init_creates_vault_and_prints_summary(tmp_path, capsys) -> None:
     output = capsys.readouterr().out
     assert "init success" in output
     assert "next:" in output
+
+
+def test_init_vault_accepts_explicit_generic_organization(tmp_path) -> None:
+    from llm_wiki_core.operations.init import init_vault
+
+    result = init_vault(
+        tmp_path,
+        purpose="Map organization foundations",
+        organization="generic",
+    )
+
+    assert result.organization == "generic"
+    assert (tmp_path / "wiki" / "comparisons").is_dir()
+    assert (tmp_path / "wiki" / "overview.md").is_file()
+
+
+def test_init_vault_rejects_unsupported_organization_without_scaffold(tmp_path) -> None:
+    import pytest
+
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.vault.scaffold import UnsupportedOrganizationMode
+
+    with pytest.raises(UnsupportedOrganizationMode):
+        init_vault(tmp_path, purpose="No unsupported modes", organization="para")
+
+    assert not (tmp_path / ".raw").exists()
+    assert not (tmp_path / "wiki").exists()
+
+
+def test_cli_init_accepts_explicit_generic_organization_json(tmp_path, capsys) -> None:
+    from llm_wiki_core.cli import main
+
+    exit_code = main(
+        [
+            "init",
+            str(tmp_path),
+            "--purpose",
+            "Codex CLI organization wiki",
+            "--organization",
+            "generic",
+            "--json",
+        ]
+    )
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["operation"] == "init"
+    assert payload["status"] == "success"
+    assert payload["organization"] == "generic"
+
+
+def test_cli_init_rejects_unsupported_organization_json_without_scaffold(tmp_path, capsys) -> None:
+    from llm_wiki_core.cli import main
+
+    exit_code = main(
+        [
+            "init",
+            str(tmp_path),
+            "--purpose",
+            "Reject unsupported organization",
+            "--organization",
+            "zettelkasten",
+            "--json",
+        ]
+    )
+
+    assert exit_code == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["operation"] == "init"
+    assert payload["status"] == "error"
+    assert payload["error"]["type"] == "UnsupportedOrganizationMode"
+    assert "Unsupported organization mode: zettelkasten" in payload["error"]["message"]
+    assert not (tmp_path / ".raw").exists()
+    assert not (tmp_path / "wiki").exists()

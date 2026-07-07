@@ -5,18 +5,27 @@ from datetime import datetime
 import json
 from pathlib import Path
 
+from llm_wiki_core.vault.scaffold import get_organization_definition
+
 
 @dataclass(frozen=True)
 class OperationResult:
     operation: str
     status: str
+    organization: str = "generic"
     files_created: list[str] = field(default_factory=list)
     files_skipped: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     next_suggested_action: str = ""
 
 
-def init_vault(vault_root: str | Path, purpose: str, adapter: str = "codex") -> OperationResult:
+def init_vault(
+    vault_root: str | Path,
+    purpose: str,
+    adapter: str = "codex",
+    organization: str = "generic",
+) -> OperationResult:
+    definition = get_organization_definition(organization)
     root = Path(vault_root)
     if root.exists() and not root.is_dir():
         raise NotADirectoryError(f"Vault root is not a directory: {root}")
@@ -28,8 +37,8 @@ def init_vault(vault_root: str | Path, purpose: str, adapter: str = "codex") -> 
     files_created: list[str] = []
     files_skipped: list[str] = []
 
-    for directory in _required_directories(root):
-        directory.mkdir(parents=True, exist_ok=True)
+    for relative in definition.required_directories:
+        (root / relative).mkdir(parents=True, exist_ok=True)
 
     _write_json_if_missing(
         root / ".raw" / ".manifest.json",
@@ -44,12 +53,12 @@ def init_vault(vault_root: str | Path, purpose: str, adapter: str = "codex") -> 
     )
 
     seed_pages = {
-        root / "wiki" / "index.md": _index_page(date, timestamp),
-        root / "wiki" / "log.md": _log_page(date, timestamp),
-        root / "wiki" / "hot.md": _hot_page(date, timestamp),
-        root / "wiki" / "overview.md": _overview_page(date, timestamp, purpose),
-        root / "wiki" / "entities" / "_index.md": _sub_index_page("Entities Index", date, timestamp),
-        root / "wiki" / "concepts" / "_index.md": _sub_index_page("Concepts Index", date, timestamp),
+        root / page.relative_path: page.render(
+            created=date,
+            updated=timestamp,
+            purpose=purpose,
+        )
+        for page in definition.seed_pages
     }
     for path, content in seed_pages.items():
         _write_text_if_missing(path, content, root, files_created, files_skipped)
@@ -66,24 +75,12 @@ def init_vault(vault_root: str | Path, purpose: str, adapter: str = "codex") -> 
     return OperationResult(
         operation="init",
         status="success",
+        organization=definition.name,
         files_created=files_created,
         files_skipped=files_skipped,
         warnings=[],
         next_suggested_action="Add raw sources under .raw/ and run ingest.",
     )
-
-
-def _required_directories(root: Path) -> list[Path]:
-    return [
-        root / ".raw",
-        root / "wiki",
-        root / "wiki" / "sources",
-        root / "wiki" / "entities",
-        root / "wiki" / "concepts",
-        root / "wiki" / "questions",
-        root / "wiki" / "comparisons",
-        root / "wiki" / "meta",
-    ]
 
 
 def _write_json_if_missing(
@@ -119,67 +116,38 @@ def _write_text_if_missing(
 def _relative_path(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
 
-
-def _frontmatter(page_type: str, title: str, date: str, timestamp: str, status: str = "seed") -> str:
-    return (
-        "---\n"
-        f"type: {page_type}\n"
-        f'title: "{title}"\n'
-        f"created: {date}\n"
-        f"updated: {timestamp}\n"
-        f"status: {status}\n"
-        "---\n\n"
-    )
-
-
 def _index_page(date: str, timestamp: str) -> str:
-    return (
-        _frontmatter("meta", "Wiki Index", date, timestamp)
-        + "# Wiki Index\n\n"
-        + "## Concepts\n\n"
-        + "## Entities\n\n"
-        + "## Sources\n\n"
-        + "## Questions\n"
-    )
+    definition = get_organization_definition("generic")
+    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/index.md")
+    return page.render(created=date, updated=timestamp, purpose="")
 
 
 def _log_page(date: str, timestamp: str) -> str:
-    return (
-        _frontmatter("meta", "Operation Log", date, timestamp)
-        + "# Operation Log\n\n"
-        + f"## [{date}] init | Vault scaffold\n"
-        + "- Summary: Created initial LLM Wiki scaffold.\n"
-        + "- Pages created: [[Wiki Index]], [[Hot Cache]], [[Overview]]\n"
-    )
+    definition = get_organization_definition("generic")
+    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/log.md")
+    return page.render(created=date, updated=timestamp, purpose="")
 
 
 def _hot_page(date: str, timestamp: str) -> str:
-    return (
-        _frontmatter("meta", "Hot Cache", date, timestamp)
-        + "# Recent Context\n\n"
-        + "## Last Updated\n"
-        + f"{date} - Vault initialized.\n\n"
-        + "## Key Recent Facts\n"
-        + "- The LLM Wiki scaffold exists.\n\n"
-        + "## Recent Changes\n"
-        + "- Created: [[Wiki Index]], [[Operation Log]], [[Overview]]\n\n"
-        + "## Active Threads\n"
-        + "- Add raw sources under `.raw/` and ingest them.\n"
-    )
+    definition = get_organization_definition("generic")
+    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/hot.md")
+    return page.render(created=date, updated=timestamp, purpose="")
 
 
 def _overview_page(date: str, timestamp: str, purpose: str) -> str:
-    return (
-        _frontmatter("overview", "Overview", date, timestamp)
-        + "# Overview\n\n"
-        + f"Purpose: {purpose}\n\n"
-        + "This vault follows the LLM Wiki pattern: raw sources stay in `.raw/`, "
-        + "the maintained wiki lives in `wiki/`, and agent behavior follows the project schema.\n"
-    )
+    definition = get_organization_definition("generic")
+    page = next(page for page in definition.seed_pages if page.relative_path == "wiki/overview.md")
+    return page.render(created=date, updated=timestamp, purpose=purpose)
 
 
 def _sub_index_page(title: str, date: str, timestamp: str) -> str:
-    return _frontmatter("meta", title, date, timestamp) + f"# {title}\n"
+    relative_path = {
+        "Entities Index": "wiki/entities/_index.md",
+        "Concepts Index": "wiki/concepts/_index.md",
+    }[title]
+    definition = get_organization_definition("generic")
+    page = next(page for page in definition.seed_pages if page.relative_path == relative_path)
+    return page.render(created=date, updated=timestamp, purpose="")
 
 
 def _agents_page(purpose: str) -> str:
