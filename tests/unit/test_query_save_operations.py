@@ -231,6 +231,74 @@ def test_save_insight_can_create_concept_page(tmp_path) -> None:
     assert (tmp_path / "wiki" / "concepts" / "Hot Cache.md").is_file()
 
 
+def test_save_question_page_path_comes_from_organization_route(tmp_path, monkeypatch) -> None:
+    from dataclasses import replace
+    from types import MappingProxyType
+
+    import llm_wiki_core.vault.routes as routes_module
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.save import save_insight
+    from llm_wiki_core.vault.scaffold import get_organization_definition
+
+    base = get_organization_definition("generic")
+    routed = replace(
+        base,
+        page_type_routes=MappingProxyType({**base.page_type_routes, "question": "wiki/routed-questions"}),
+    )
+    monkeypatch.setattr(routes_module, "get_organization_definition", lambda _name="generic": routed)
+
+    init_vault(tmp_path, purpose="Route save question")
+
+    result = save_insight(
+        tmp_path,
+        content="Route-backed question save.",
+        title="Route Question",
+    )
+
+    assert result.page_path == "wiki/routed-questions/Route Question.md"
+    assert (tmp_path / "wiki" / "routed-questions" / "Route Question.md").is_file()
+    assert not (tmp_path / "wiki" / "questions" / "Route Question.md").exists()
+
+
+def test_save_concept_page_path_comes_from_organization_route(tmp_path, monkeypatch) -> None:
+    from dataclasses import replace
+    from types import MappingProxyType
+
+    import llm_wiki_core.vault.routes as routes_module
+    from llm_wiki_core.operations.init import init_vault
+    from llm_wiki_core.operations.save import save_insight
+    from llm_wiki_core.vault.scaffold import get_organization_definition
+
+    base = get_organization_definition("generic")
+    routed = replace(
+        base,
+        page_type_routes=MappingProxyType({**base.page_type_routes, "concept": "wiki/routed-concepts"}),
+    )
+    monkeypatch.setattr(routes_module, "get_organization_definition", lambda _name="generic": routed)
+
+    init_vault(tmp_path, purpose="Route save concept")
+
+    result = save_insight(
+        tmp_path,
+        content="Route-backed concept save.",
+        title="Route Concept",
+        target_type="concept",
+    )
+
+    assert result.page_path == "wiki/routed-concepts/Route Concept.md"
+    assert (tmp_path / "wiki" / "routed-concepts" / "Route Concept.md").is_file()
+    assert not (tmp_path / "wiki" / "concepts" / "Route Concept.md").exists()
+
+
+def test_save_target_type_allowlist_is_preserved(tmp_path) -> None:
+    import pytest
+
+    from llm_wiki_core.operations.save import save_insight
+
+    with pytest.raises(ValueError, match="target_type must be question or concept"):
+        save_insight(tmp_path, content="Entity saves are not part of R5.1.", target_type="entity")
+
+
 def test_save_insight_uses_transport_for_write_paths(tmp_path) -> None:
     from llm_wiki_core.operations.save import save_insight
 

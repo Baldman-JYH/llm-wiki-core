@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 import re
+from llm_wiki_core.vault.routes import page_path_for_title
 
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
@@ -29,9 +30,7 @@ def save_insight(
     root = Path(vault_root)
     active_transport = transport or select_runtime_transport(root).transport
     page_title = _title(title or content)
-    folder = _folder_for_type(target_type)
-    page_relative = Path("wiki") / folder / f"{page_title}.md"
-    page_path = page_relative.as_posix()
+    page_path = _page_path_for_type(target_type, page_title)
     timestamp = datetime.now().astimezone().isoformat(timespec="seconds")
     date = timestamp[:10]
     files_created: list[str] = []
@@ -58,11 +57,11 @@ def save_insight(
     )
 
 
-def _folder_for_type(target_type: str) -> str:
+def _page_path_for_type(target_type: str, page_title: str) -> str:
     if target_type == "question":
-        return "questions"
+        return page_path_for_title("question", page_title)
     if target_type == "concept":
-        return "concepts"
+        return page_path_for_title("concept", page_title)
     raise ValueError("target_type must be question or concept")
 
 
