@@ -358,3 +358,32 @@ Non-scope:
 - Full LYT, PARA, Zettelkasten, DragonScale, and semantic stale-claim lint remain future R5.x work.
 - No existing vault migration is provided in R5.0.
 - No adapter claims advanced methodology support in R5.0.
+
+### R5.1: Organization Route Adoption Foundation
+
+Window: 2026-07-07
+
+Status: complete.
+
+Scope:
+
+- Organization route helper layer.
+- `generic` searchable page-type order.
+- Ingest and batch ingest source page route adoption.
+- Save question and concept route adoption.
+- Search roots sourced from organization routes.
+- Status required paths sourced from the organization contract.
+- Public documentation and guard tests for route-adoption-only support.
+
+Completed outcome:
+
+- `generic` artifact paths remain compatible.
+- Ingest, batch ingest, save, search, and status no longer maintain independent generic route tables.
+- Search root order remains stable for current users.
+- Non-generic organization modes remain future R5.x work.
+
+Non-scope:
+
+- Non-generic organization modes.
+- Vault-level persisted organization metadata.
+- LYT, PARA, Zettelkasten, DragonScale, comparison workflow runtime, semantic stale-claim lint, vector or hybrid retrieval, and advanced adapter behavior remain future work.

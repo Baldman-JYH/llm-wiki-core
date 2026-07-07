@@ -59,7 +59,7 @@ Remaining adapter work:
 
 ## Knowledge Organization Roadmap
 
-R5.0 knowledge organization foundation is complete. generic remains the default organization mode.
+R5.0 knowledge organization foundation is complete. R5.1 organization route adoption is complete. generic remains the default organization mode.
 
 Future R5.x work:
 

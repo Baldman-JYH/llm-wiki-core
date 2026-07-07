@@ -53,3 +53,11 @@ R5.0 does not support:
 - vector or hybrid retrieval;
 - Obsidian Dataview, Bases, canvas, or plugin-specific dashboards;
 - Claude hooks, subagents, or `.claude-plugin` packaging.
+
+## R5.1 Route Adoption
+
+R5.1 adds organization route adoption.
+
+The `generic` organization definition remains the only supported runtime mode, but core operations now consume the organization contract more consistently. This change routes ingest, batch ingest, save, search, and status read routes from the organization contract instead of maintaining separate local route tables.
+
+R5.1 does not add non-generic organization modes. LYT, PARA, Zettelkasten, DragonScale, comparison workflow runtime, semantic stale-claim lint, vector or hybrid retrieval, and advanced Claude adapter behavior remain future work.
