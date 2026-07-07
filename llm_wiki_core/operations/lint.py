@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 
+from llm_wiki_core.vault.scaffold import required_paths_for_organization
 from llm_wiki_core.transport.runtime import select_runtime_transport
 
 
@@ -61,20 +62,7 @@ def lint_wiki(vault_root: str | Path, write_report: bool = True, transport: obje
 
 
 def _check_required_paths(transport: object, findings: list[LintFinding]) -> None:
-    required = [
-        ".raw/.manifest.json",
-        "wiki/index.md",
-        "wiki/log.md",
-        "wiki/hot.md",
-        "wiki/overview.md",
-        "wiki/sources",
-        "wiki/entities",
-        "wiki/concepts",
-        "wiki/questions",
-        "wiki/comparisons",
-        "wiki/meta",
-    ]
-    for relative in required:
+    for relative in required_paths_for_organization("generic"):
         if not transport.exists(relative):  # type: ignore[attr-defined]
             findings.append(LintFinding("blocker", "required-path", relative, "Required path is missing."))
 

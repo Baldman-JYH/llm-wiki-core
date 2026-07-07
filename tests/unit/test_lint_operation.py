@@ -277,3 +277,24 @@ def test_lint_rejects_missing_or_empty_manifest_content_fingerprint(tmp_path) ->
     findings = [finding for finding in result.findings if finding.check == "manifest-content-fingerprint"]
     assert len(findings) == 2
     assert all(finding.severity == "blocker" for finding in findings)
+
+
+def test_lint_required_paths_come_from_organization_definition(tmp_path, monkeypatch) -> None:
+    from llm_wiki_core.operations import lint as lint_module
+    from llm_wiki_core.operations.init import init_vault
+
+    init_vault(tmp_path, purpose="Lint organization contract")
+
+    monkeypatch.setattr(
+        lint_module,
+        "required_paths_for_organization",
+        lambda name="generic": ("wiki/missing-from-organization-contract",),
+    )
+
+    result = lint_module.lint_wiki(tmp_path, write_report=False)
+
+    assert any(
+        finding.check == "required-path"
+        and finding.path == "wiki/missing-from-organization-contract"
+        for finding in result.findings
+    )
