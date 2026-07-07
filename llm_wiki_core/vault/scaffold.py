@@ -40,6 +40,7 @@ class OrganizationDefinition:
     seed_pages: tuple[SeedPage, ...]
     page_type_routes: Mapping[str, str]
     lint_required_paths: tuple[str, ...]
+    search_page_types: tuple[str, ...] = ()
     lint_exemptions: tuple[str, ...] = ()
     adapter_notes: tuple[str, ...] = ()
 
@@ -153,6 +154,13 @@ GENERIC_ORGANIZATION = OrganizationDefinition(
         "wiki/questions",
         "wiki/comparisons",
         "wiki/meta",
+    ),
+    search_page_types=(
+        "source",
+        "concept",
+        "entity",
+        "question",
+        "comparison",
     ),
     adapter_notes=(
         "generic is the default organization mode",

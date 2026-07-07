@@ -45,6 +45,13 @@ def test_generic_organization_definition_matches_mvp_structure() -> None:
     assert definition.page_type_routes["question"] == "wiki/questions"
     assert definition.page_type_routes["comparison"] == "wiki/comparisons"
     assert definition.page_type_routes["overview"] == "wiki/overview.md"
+    assert definition.search_page_types == (
+        "source",
+        "concept",
+        "entity",
+        "question",
+        "comparison",
+    )
 
     seed_paths = {page.relative_path for page in definition.seed_pages}
     assert {
