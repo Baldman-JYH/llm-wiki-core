@@ -11,6 +11,14 @@ Date: 2026-06-26
 
 ## Current Release Archive
 
+- Release: `v0.5.0-mvp`
+- Archive name: `llm-wiki-core-v0.5.0-mvp.zip`
+- Archive method: `git archive`
+- Checksum: SHA256 stored beside the generated archive.
+- Artifact location: outside the repository working tree, for example `<release-artifacts>/llm-wiki-core-v0.5.0-mvp.zip`.
+
+## Previous R4.3 Release Archive
+
 - Release: `v0.4.3-mvp`
 - Archive name: `llm-wiki-core-v0.4.3-mvp.zip`
 - Archive method: `git archive`
@@ -29,7 +37,7 @@ Date: 2026-06-26
 The release archive is generated from the local Git tag:
 
 ```powershell
-git archive --format=zip --output <release-artifacts>/llm-wiki-core-v0.4.3-mvp.zip v0.4.3-mvp
+git archive --format=zip --output <release-artifacts>/llm-wiki-core-v0.5.0-mvp.zip v0.5.0-mvp
 ```
 
 This ensures the archive includes tracked release content and excludes runtime state.

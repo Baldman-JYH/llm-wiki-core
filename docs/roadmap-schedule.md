@@ -337,6 +337,8 @@ Window: 2026-07-07
 
 Status: complete.
 
+Release: `v0.5.0-mvp`.
+
 Scope:
 
 - Explicit `generic` organization definition.

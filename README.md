@@ -2,8 +2,8 @@
 
 `llm-wiki-core` is a neutral local LLM Wiki practice implementation. The canonical abstraction is [Karpathy's LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f): raw materials stay durable, and the agent maintains a Markdown wiki instead of leaving knowledge trapped in chat. [AgriciDaniel/claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) is the reference implementation for the Claude Code + Obsidian workflow, while `llm-wiki-core` focuses on a neutral, testable core that does not claim full parity with `claude-obsidian`.
 
-Current release: `v0.4.3-mvp`.
-Current status: R4.3 ships a project-local Claude adapter MVP on top of the existing neutral core and Codex adapter path.
+Current release: `v0.5.0-mvp`.
+Current status: R5.0 ships the knowledge organization foundation while preserving the existing generic LLM Wiki behavior.
 
 ## Project Positioning
 
@@ -24,6 +24,7 @@ Current status: R4.3 ships a project-local Claude adapter MVP on top of the exis
 - Use filesystem transport as the default portable runtime path.
 - Treat the official `obsidian` CLI as optional and verified-only.
 - Install project-local Claude adapter assets for `/wiki` and `/save` intent mapping.
+- Use `generic` as the default knowledge organization mode, with an explicit organization contract for future optional modes.
 
 ## Quick Start
 
@@ -77,7 +78,8 @@ llm-wiki search <vault> "durable wiki knowledge" --limit 5 --json
 
 | Command | Purpose |
 |---|---|
-| `llm-wiki init <vault> --purpose "..."` | Initialize a local wiki vault. |
+| `llm-wiki init <vault> --purpose "..."` | Initialize a local wiki vault with the default `generic` organization mode. |
+| `llm-wiki init <vault> --purpose "..." --organization generic` | Initialize a local wiki vault with an explicit supported organization mode. |
 | `llm-wiki detect-transport <vault> --force` | Record runtime transport capability metadata. |
 | `llm-wiki ingest <vault> <source>` | Ingest one local Markdown source under `.raw/`. |
 | `llm-wiki ingest-batch <vault> <source-root>` | Ingest local Markdown files discovered under `.raw/`. |
@@ -135,6 +137,8 @@ R4.3 provides `CLAUDE.template.md`, a project-local Claude `llm-wiki` skill, thi
 - R3.3 remains text-first on top of the R3.2 URL ingest foundation.
 - R4.1 Codex user-level skill installation is opt-in through explicit installer flags.
 - R4.3 Claude project-local adapter installation is opt-in through explicit installer flags.
+- R5.0 knowledge organization foundation keeps `generic` as the default organization mode.
+- LYT, PARA, Zettelkasten, DragonScale, semantic stale-claim lint, and comparison workflow helpers remain deferred.
 - Vector search, hybrid retrieval, reranking, raw-source search by default, qmd integration, and LLM synthesis remain deferred.
 - Active Claude hooks, Claude subagents, `.claude-plugin` packaging, autoresearch, canvas workflows, DragonScale memory, methodology modes, and automatic Git commits remain deferred.
 - Full readability, defuddle, JavaScript rendering, authenticated pages, and crawling remain deferred.
@@ -152,6 +156,7 @@ R4.3 provides `CLAUDE.template.md`, a project-local Claude `llm-wiki` skill, thi
 - [v0.1.0 MVP release notes](docs/release-notes-v0.1.0-mvp.md)
 - [v0.4.0 MVP release notes](docs/release-notes-v0.4.0-mvp.md)
 - [v0.4.3 MVP release notes](docs/release-notes-v0.4.3-mvp.md)
+- [v0.5.0 MVP release notes](docs/release-notes-v0.5.0-mvp.md)
 - [Archive manifest](docs/archive-manifest.md)
 
 ## Roadmap
@@ -163,7 +168,8 @@ R4.3 provides `CLAUDE.template.md`, a project-local Claude `llm-wiki` skill, thi
 - R4.1: explicit Codex user-level skill installation.
 - R4.3: project-local Claude adapter MVP for `/wiki` and `/save`.
 - R4.x: remaining advanced adapter expansion, including Claude hooks, subagents, and future plugin packaging.
-- R5: knowledge-organization extensions.
+- R5.0: knowledge organization foundation with `generic` as the default organization mode.
+- R5.x: optional knowledge-organization extensions.
 
 See [docs/roadmap-schedule.md](docs/roadmap-schedule.md) for the prioritized schedule.
 

@@ -33,8 +33,10 @@ def test_archive_manifest_defines_release_artifact_policy() -> None:
     required_terms = [
         "llm-wiki-core-v0.1.0-mvp.zip",
         "llm-wiki-core-v0.4.3-mvp.zip",
+        "llm-wiki-core-v0.5.0-mvp.zip",
         "v0.1.0-mvp",
         "v0.4.3-mvp",
+        "v0.5.0-mvp",
         "git archive",
         "SHA256",
         "exclude .git",
@@ -69,6 +71,7 @@ def test_readme_links_release_process_docs() -> None:
     assert "docs/release-notes-v0.1.0-mvp.md" in readme
     assert "docs/release-notes-v0.4.0-mvp.md" in readme
     assert "docs/release-notes-v0.4.3-mvp.md" in readme
+    assert "docs/release-notes-v0.5.0-mvp.md" in readme
     assert "docs/archive-manifest.md" in readme
     assert "docs/roadmap-schedule.md" in readme
 
@@ -110,6 +113,29 @@ def test_r4_3_release_notes_capture_claude_local_adapter_boundary() -> None:
         "Claude subagents remain deferred",
         ".claude-plugin packaging remains deferred",
         "248 passed, 10 skipped",
+    ]
+    for term in required_terms:
+        assert term in notes
+
+
+def test_r5_0_release_notes_capture_knowledge_organization_boundary() -> None:
+    notes = _read("docs/release-notes-v0.5.0-mvp.md")
+
+    required_terms = [
+        "v0.5.0-mvp",
+        "R5.0 Knowledge Organization Foundation",
+        "Explicit `generic` organization definition",
+        "--organization generic",
+        "Unsupported organization mode rejection before scaffold files are written",
+        "Lint required paths sourced from the organization contract",
+        "LYT runtime mode remains deferred",
+        "PARA runtime mode remains deferred",
+        "Zettelkasten runtime mode remains deferred",
+        "DragonScale or log-folding memory remains deferred",
+        "Semantic stale-claim lint remains deferred",
+        "33 passed",
+        "37 passed, 4 skipped",
+        "267 passed, 10 skipped",
     ]
     for term in required_terms:
         assert term in notes
