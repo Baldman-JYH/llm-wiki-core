@@ -4,22 +4,8 @@ from dataclasses import dataclass, field
 import json
 from pathlib import Path
 
+from llm_wiki_core.vault.scaffold import required_paths_for_organization
 from llm_wiki_core.transport.runtime import select_runtime_transport
-
-
-REQUIRED_PATHS = [
-    ".raw/.manifest.json",
-    "wiki/index.md",
-    "wiki/log.md",
-    "wiki/hot.md",
-    "wiki/overview.md",
-    "wiki/sources",
-    "wiki/entities",
-    "wiki/concepts",
-    "wiki/questions",
-    "wiki/comparisons",
-    "wiki/meta",
-]
 
 
 @dataclass(frozen=True)
@@ -39,7 +25,8 @@ def status_wiki(vault_root: str | Path, transport: object | None = None) -> Stat
     selection = None if transport is not None else select_runtime_transport(vault_root)
     active_transport = transport or selection.transport
     warnings: list[str] = list(selection.warnings) if selection else []
-    missing = [path for path in REQUIRED_PATHS if not active_transport.exists(path)]  # type: ignore[attr-defined]
+    required_paths = required_paths_for_organization("generic")
+    missing = [path for path in required_paths if not active_transport.exists(path)]  # type: ignore[attr-defined]
     initialized = not missing
 
     source_count = _source_count(active_transport, warnings)

@@ -46,6 +46,33 @@ def test_status_wiki_falls_back_from_legacy_unimplemented_transport_snapshot(tmp
     assert any("not implemented" in warning for warning in result.warnings)
 
 
+def test_status_required_paths_come_from_organization_contract(tmp_path, monkeypatch) -> None:
+    import llm_wiki_core.operations.status as status_module
+    from llm_wiki_core.operations.status import status_wiki
+
+    monkeypatch.setattr(
+        status_module,
+        "required_paths_for_organization",
+        lambda _organization="generic": ("wiki/routed-required.md",),
+    )
+
+    class SpyTransport:
+        def __init__(self) -> None:
+            self.exists_paths: list[str] = []
+
+        def exists(self, relative_path: str) -> bool:
+            self.exists_paths.append(relative_path)
+            return False
+
+    transport = SpyTransport()
+
+    result = status_wiki(tmp_path, transport=transport)
+
+    assert result.status == "incomplete"
+    assert result.missing_required_paths == ["wiki/routed-required.md"]
+    assert "wiki/routed-required.md" in transport.exists_paths
+
+
 def test_status_wiki_reports_incomplete_vault_without_writing(tmp_path) -> None:
     from llm_wiki_core.operations.status import status_wiki
 

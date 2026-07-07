@@ -4,16 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from llm_wiki_core.retrieval.lexical import RankedPage, SearchDocument, search_documents
+from llm_wiki_core.vault.routes import search_roots_for_organization
 from llm_wiki_core.transport.runtime import select_runtime_transport
-
-
-SEARCH_ROOTS = (
-    "wiki/sources",
-    "wiki/concepts",
-    "wiki/entities",
-    "wiki/questions",
-    "wiki/comparisons",
-)
 
 
 @dataclass(frozen=True)
@@ -41,7 +33,8 @@ def search_wiki(
     root = Path(vault_root)
     selection = None if transport is not None else select_runtime_transport(root)
     active_transport = transport or selection.transport
-    documents = _read_search_documents(active_transport)
+    search_roots = search_roots_for_organization("generic")
+    documents = _read_search_documents(active_transport, search_roots)
     results = search_documents(query, documents, limit=limit)
     status = "success" if results else "no_results"
     warnings = list(selection.warnings) if selection else []
@@ -52,15 +45,15 @@ def search_wiki(
         query=query,
         limit=limit,
         results=results,
-        searched_roots=list(SEARCH_ROOTS),
+        searched_roots=list(search_roots),
         searched_pages=len(documents),
         warnings=warnings,
     )
 
 
-def _read_search_documents(transport: object) -> list[SearchDocument]:
+def _read_search_documents(transport: object, search_roots: tuple[str, ...]) -> list[SearchDocument]:
     documents: list[SearchDocument] = []
-    for root in SEARCH_ROOTS:
+    for root in search_roots:
         for page in transport.list_markdown(root):  # type: ignore[attr-defined]
             documents.append(
                 SearchDocument(

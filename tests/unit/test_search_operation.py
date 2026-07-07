@@ -96,6 +96,40 @@ def test_search_wiki_rejects_stopword_only_query(tmp_path) -> None:
         search_wiki(tmp_path, "what is the and", transport=SpyTransport())
 
 
+def test_search_wiki_roots_come_from_organization_routes(tmp_path, monkeypatch) -> None:
+    import llm_wiki_core.operations.search as search_module
+    from llm_wiki_core.operations.search import search_wiki
+
+    monkeypatch.setattr(
+        search_module,
+        "search_roots_for_organization",
+        lambda _organization="generic": ("wiki/routed-search",),
+    )
+
+    class RoutedSearchTransport:
+        def __init__(self) -> None:
+            self.list_roots: list[str] = []
+            self.files = {
+                "wiki/routed-search/Route Result.md": "# Route Result\n\nDurable routed search content.",
+                "wiki/sources/Ignored.md": "# Ignored\n\nDurable content outside routed roots.",
+            }
+
+        def list_markdown(self, root: str = "wiki") -> list[str]:
+            self.list_roots.append(root)
+            return sorted(path for path in self.files if path.startswith(root + "/") and path.endswith(".md"))
+
+        def read_text(self, relative_path: str) -> str:
+            return self.files[relative_path]
+
+    transport = RoutedSearchTransport()
+
+    result = search_wiki(tmp_path, "durable routed", transport=transport)
+
+    assert result.searched_roots == ["wiki/routed-search"]
+    assert transport.list_roots == ["wiki/routed-search"]
+    assert [page.path for page in result.results] == ["wiki/routed-search/Route Result.md"]
+
+
 def test_search_wiki_default_transport_propagates_selection_warnings(tmp_path, monkeypatch) -> None:
     from llm_wiki_core.operations import search as search_module
     from llm_wiki_core.operations.search import search_wiki
