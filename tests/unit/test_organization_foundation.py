@@ -55,28 +55,34 @@ def test_generic_organization_definition_matches_mvp_structure() -> None:
     }.issubset(seed_paths)
 
 
-def test_generic_seed_pages_render_existing_mvp_content() -> None:
+def test_generic_seed_pages_render_match_current_init_contract() -> None:
+    from llm_wiki_core.operations.init import (
+        _hot_page,
+        _index_page,
+        _log_page,
+        _overview_page,
+        _sub_index_page,
+    )
     from llm_wiki_core.vault.scaffold import get_organization_definition
 
-    definition = get_organization_definition()
+    date = "2026-07-07"
+    timestamp = "2026-07-07T08:09:10+08:00"
+    purpose = "Map an example codebase"
+    definition = get_organization_definition("generic")
+
     rendered = {
-        page.relative_path: page.render(
-            created="2026-07-07",
-            updated="2026-07-07T08:09:10+08:00",
-            purpose="Map an example codebase",
-        )
+        page.relative_path: page.render(created=date, updated=timestamp, purpose=purpose)
         for page in definition.seed_pages
     }
 
-    assert rendered["wiki/index.md"].startswith("---\ntype: meta\n")
-    assert "# Wiki Index" in rendered["wiki/index.md"]
-    assert "## Concepts" in rendered["wiki/index.md"]
-    assert "## Entities" in rendered["wiki/index.md"]
-    assert "## Sources" in rendered["wiki/index.md"]
-    assert "## Questions" in rendered["wiki/index.md"]
-    assert "Created initial LLM Wiki scaffold." in rendered["wiki/log.md"]
-    assert "Vault initialized." in rendered["wiki/hot.md"]
-    assert "Map an example codebase" in rendered["wiki/overview.md"]
+    assert rendered == {
+        "wiki/index.md": _index_page(date, timestamp),
+        "wiki/log.md": _log_page(date, timestamp),
+        "wiki/hot.md": _hot_page(date, timestamp),
+        "wiki/overview.md": _overview_page(date, timestamp, purpose),
+        "wiki/entities/_index.md": _sub_index_page("Entities Index", date, timestamp),
+        "wiki/concepts/_index.md": _sub_index_page("Concepts Index", date, timestamp),
+    }
 
 
 def test_required_paths_for_generic_organization_match_current_lint_contract() -> None:
@@ -96,6 +102,49 @@ def test_required_paths_for_generic_organization_match_current_lint_contract() -
         "wiki/questions",
         "wiki/comparisons",
         "wiki/meta",
+    )
+
+
+def test_required_paths_findings_match_lint_contract() -> None:
+    from llm_wiki_core.operations.lint import _check_required_paths
+    from llm_wiki_core.vault.scaffold import required_paths_for_organization
+
+    class SpyTransport:
+        def __init__(self) -> None:
+            self.exists_paths: list[str] = []
+
+        def exists(self, relative_path: str) -> bool:
+            self.exists_paths.append(relative_path)
+            return False
+
+    findings: list = []
+    transport = SpyTransport()
+    _check_required_paths(transport, findings)
+    expected_paths = list(required_paths_for_organization("generic"))
+
+    assert [finding.path for finding in findings] == expected_paths
+    assert transport.exists_paths == expected_paths
+    assert all(finding.check == "required-path" for finding in findings)
+    assert all(finding.severity == "blocker" for finding in findings)
+
+
+def test_supported_organization_modes_only_contains_generic() -> None:
+    from llm_wiki_core.vault.scaffold import supported_organization_modes
+
+    assert supported_organization_modes() == ("generic",)
+
+
+def test_generic_page_type_routes_immutable() -> None:
+    from llm_wiki_core.vault.scaffold import get_organization_definition
+
+    definition = get_organization_definition("generic")
+
+    with pytest.raises(TypeError):
+        definition.page_type_routes["concept"] = "other"
+
+    assert (
+        get_organization_definition("generic").page_type_routes["concept"]
+        == "wiki/concepts"
     )
 
 

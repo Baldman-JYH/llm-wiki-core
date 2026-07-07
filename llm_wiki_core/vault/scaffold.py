@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 
 from llm_wiki_core.schema.frontmatter import build_frontmatter
 
@@ -131,7 +132,7 @@ GENERIC_ORGANIZATION = OrganizationDefinition(
         SeedPage("wiki/entities/_index.md", "meta", "Entities Index", _sub_index_body("Entities Index")),
         SeedPage("wiki/concepts/_index.md", "meta", "Concepts Index", _sub_index_body("Concepts Index")),
     ),
-    page_type_routes={
+    page_type_routes=MappingProxyType({
         "source": "wiki/sources",
         "entity": "wiki/entities",
         "concept": "wiki/concepts",
@@ -139,7 +140,7 @@ GENERIC_ORGANIZATION = OrganizationDefinition(
         "comparison": "wiki/comparisons",
         "meta": "wiki/meta",
         "overview": "wiki/overview.md",
-    },
+    }),
     lint_required_paths=(
         ".raw/.manifest.json",
         "wiki/index.md",
