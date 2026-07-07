@@ -44,6 +44,6 @@ def search_roots_for_organization(organization: str = "generic") -> tuple[str, .
 
 def _validated_route(page_type: str, route: str) -> str:
     path = PurePosixPath(route)
-    if path.is_absolute() or ".." in path.parts or "\\" in route:
+    if not route or path.as_posix() == "." or path.is_absolute() or ".." in path.parts or "\\" in route:
         raise ValueError(f"Invalid route for page type {page_type}: {route}")
     return path.as_posix()

@@ -84,3 +84,39 @@ def test_route_helper_rejects_backslash_routes(monkeypatch) -> None:
 
     with pytest.raises(ValueError, match="Invalid route for page type source"):
         routes_module.route_for_page_type("source")
+
+
+def test_route_helper_rejects_empty_routes(monkeypatch) -> None:
+    from dataclasses import replace
+    from types import MappingProxyType
+
+    import llm_wiki_core.vault.routes as routes_module
+    from llm_wiki_core.vault.scaffold import get_organization_definition
+
+    base = get_organization_definition("generic")
+    invalid = replace(
+        base,
+        page_type_routes=MappingProxyType({**base.page_type_routes, "source": ""}),
+    )
+    monkeypatch.setattr(routes_module, "get_organization_definition", lambda _name="generic": invalid)
+
+    with pytest.raises(ValueError, match="Invalid route for page type source"):
+        routes_module.route_for_page_type("source")
+
+
+def test_route_helper_rejects_dot_routes(monkeypatch) -> None:
+    from dataclasses import replace
+    from types import MappingProxyType
+
+    import llm_wiki_core.vault.routes as routes_module
+    from llm_wiki_core.vault.scaffold import get_organization_definition
+
+    base = get_organization_definition("generic")
+    invalid = replace(
+        base,
+        page_type_routes=MappingProxyType({**base.page_type_routes, "source": "."}),
+    )
+    monkeypatch.setattr(routes_module, "get_organization_definition", lambda _name="generic": invalid)
+
+    with pytest.raises(ValueError, match="Invalid route for page type source"):
+        routes_module.route_for_page_type("source")
